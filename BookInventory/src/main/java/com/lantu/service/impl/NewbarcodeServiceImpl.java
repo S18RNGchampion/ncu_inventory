@@ -1,10 +1,11 @@
 package com.lantu.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.lantu.domain.po.Newbarcode;
-import com.lantu.domain.vo.BookInfoVo;
-import com.lantu.domain.vo.FrameBooksVo;
-import com.lantu.domain.vo.SheltInfoVo;
-import com.lantu.domain.vo.SummaryInfoVo;
+import com.lantu.domain.vo.*;
+import com.lantu.enums.InventoryStatusEnum;
 import com.lantu.mapper.BookinfoMapper;
 import com.lantu.mapper.NewbarcodeMapper;
 import com.lantu.service.INewbarcodeService;
@@ -17,7 +18,7 @@ import java.util.stream.Collectors;
 
 /**
  * <p>
- *  服务实现类
+ * 服务实现类
  * </p>
  *
  * @author author
@@ -25,29 +26,30 @@ import java.util.stream.Collectors;
  */
 @Service
 public class NewbarcodeServiceImpl extends ServiceImpl<NewbarcodeMapper, Newbarcode> implements INewbarcodeService {
-    
+
     @Autowired
     private NewbarcodeMapper newbarcodeMapper;
-    
+
     @Autowired
     private BookinfoMapper bookinfoMapper;
+
     public void processFileContent(List<String> newbarcodes) {
         // 当前时间，用于设置条形码的创建时间
         Date currentTime = new Date();
         // 存储所有需要插入数据库的条形码信息
         List<Newbarcode> barcodeList = new ArrayList<>();
-        
+
         // 定位信息相关变量
         String floor = null, shelf = null, rownum = null, colnum = null; // 楼层、书架编号、行号、列号
         Character startChar = null, endChar = null; // 范围的起点和终点字符（如 A 或 B）
         boolean inRange = false; // 是否正在处理一个范围的标志
         List<String> tempBarcodes = new ArrayList<>(); // 临时存储当前范围内的条形码
-        
+
         // 遍历输入文件的每一行内容
         for (String line : newbarcodes) {
             // 去除每行的前后空白字符
             line = line.trim();
-            
+
             // 如果当前行是定位信息（格式如 14#A12#5#1#A）
             if (line.matches("^\\d+#\\w+#\\d+#\\d+#\\w$")) {
                 // 分割定位信息字符串，提取具体部分
@@ -57,7 +59,7 @@ public class NewbarcodeServiceImpl extends ServiceImpl<NewbarcodeMapper, Newbarc
                 rownum = parts[2];               // 行号
                 colnum = parts[3];               // 列号
                 char currentChar = parts[4].charAt(0); // 最后一部分的字符（A 或 B 等）
-                
+
                 if (!inRange) {
                     // 如果未处于范围内，当前行表示范围的开始
                     startChar = currentChar; // 设置范围的起始字符
@@ -67,7 +69,7 @@ public class NewbarcodeServiceImpl extends ServiceImpl<NewbarcodeMapper, Newbarc
                     // 如果已处于范围内，当前行表示范围的结束
                     endChar = currentChar;   // 设置范围的结束字符
                     inRange = false;         // 标记退出范围
-                    
+
                     // 根据范围的起止字符决定条形码插入顺序
                     if (startChar < endChar) {
                         // 如果范围是从 A 到 B，按原顺序插入条形码
@@ -89,7 +91,7 @@ public class NewbarcodeServiceImpl extends ServiceImpl<NewbarcodeMapper, Newbarc
                 }
             }
         }
-        
+
         // 处理文件结尾未关闭的范围（例如，最后一个范围没有结束标志）
         if (inRange) {
             if (startChar > endChar) {
@@ -104,21 +106,21 @@ public class NewbarcodeServiceImpl extends ServiceImpl<NewbarcodeMapper, Newbarc
                 }
             }
         }
-        
+
         // 批量将所有条形码插入数据库
         newbarcodeMapper.batchInsertNewbarcodes(barcodeList);
     }
-    
+
     /**
      * 辅助方法：将条形码及其相关信息添加到条形码列表
      *
-     * @param barcodeList  最终插入数据库的条形码列表
-     * @param barcode      当前条形码
-     * @param floor        楼层信息
-     * @param shelf        书架编号
-     * @param rownum       行号
-     * @param colnum       列号
-     * @param currentTime  当前时间戳
+     * @param barcodeList 最终插入数据库的条形码列表
+     * @param barcode     当前条形码
+     * @param floor       楼层信息
+     * @param shelf       书架编号
+     * @param rownum      行号
+     * @param colnum      列号
+     * @param currentTime 当前时间戳
      */
     private void addToBarcodeList(List<Newbarcode> barcodeList, String barcode,
                                   String floor, String shelf, String rownum, String colnum, Date currentTime) {
@@ -134,10 +136,7 @@ public class NewbarcodeServiceImpl extends ServiceImpl<NewbarcodeMapper, Newbarc
         barcodeList.add(newbarcode);
     }
 
-    
-    
-    
-    
+
 //    @Override
 //    public void processFileContent(List<String> newbarcodes) {
 //
@@ -157,35 +156,35 @@ public class NewbarcodeServiceImpl extends ServiceImpl<NewbarcodeMapper, Newbarc
 //        newbarcodeMapper.batchInsertNewbarcodes(barcodeList);
 //
 //    }
-    
+
     @Override
     public SummaryInfoVo getSummaryBookData() {
         // 获取总书籍数（假设这里用一个固定的值，实际上你可以从数据库获取）
         int totalBooks = getTotalBooks();
-    
+
         // 获取各楼层的书籍信息
         List<SummaryInfoVo.FloorBookInfo> floors = getBooksByFloor();
-    
+
         // 创建并返回 SummaryInfoVo 对象
         return new SummaryInfoVo(totalBooks, floors);
     }
-    
+
     @Override
     public SheltInfoVo getShelvesData(int floorname) {
         try {
             // 1. 查询数据库中 createdtime 的最大值（即最后一次的时间）
             Date latestTime = newbarcodeMapper.selectMaxCreatedTime();
-        
+
             // 2. 如果获取到了最新时间，则根据 floorname 和最新的 createdtime 查询数据
             if (latestTime != null) {
                 // 查询书架数据
                 List<SheltInfoVo.Shelf> shelves = newbarcodeMapper.selectShelvesDataByFloornameAndTime(floorname, latestTime);
-            
+
                 // 创建 SheltInfoVo 对象并设置数据
                 SheltInfoVo sheltInfoVo = new SheltInfoVo();
                 sheltInfoVo.setFloorname(floorname);
                 sheltInfoVo.setShelves(shelves);
-            
+
                 return sheltInfoVo;
             } else {
                 // 如果没有找到最大时间，返回一个空的 SheltInfoVo 或者默认值
@@ -200,13 +199,13 @@ public class NewbarcodeServiceImpl extends ServiceImpl<NewbarcodeMapper, Newbarc
             return null;
         }
     }
-    
+
     @Override
     public List<FrameBooksVo> getFrameBooksData(int floorName, String shelfName) {
         try {
             Date latestTime = newbarcodeMapper.selectMaxCreatedTime();
             // 调用 Mapper 方法获取书框书籍数据
-            List<FrameBooksVo> frameBooksData = newbarcodeMapper.selectFrameBooksData(floorName, shelfName,latestTime);
+            List<FrameBooksVo> frameBooksData = newbarcodeMapper.selectFrameBooksData(floorName, shelfName, latestTime);
             System.out.println("Fetched frameBooksData: " + frameBooksData); // 输出数据
             return frameBooksData;
         } catch (Exception e) {
@@ -215,8 +214,8 @@ public class NewbarcodeServiceImpl extends ServiceImpl<NewbarcodeMapper, Newbarc
             return Collections.emptyList();
         }
     }
-    
-//    @Override
+
+    //    @Override
 //    public List<String> getBooksDetailsData(int floorName, String shelfName, int row, int col) {
 //        try {
 //            // 1. 查询数据库中 createdtime 的最大值（即最后一次的时间）
@@ -243,22 +242,22 @@ public class NewbarcodeServiceImpl extends ServiceImpl<NewbarcodeMapper, Newbarc
             // 1. 查询数据库中 createdtime 的最大值（即最后一次的时间）
             Date latestTime = newbarcodeMapper.selectMaxCreatedTime();
             System.out.println("Latest created time: " + latestTime);
-            
+
             // 2. 查询最大时间下，符合条件的条形码（newbarcode）
             List<String> newbarcodes = newbarcodeMapper.selectNewbarcodesByLocationAndTime(floorName, shelfName, row, col, latestTime);
             if (newbarcodes.isEmpty()) {
                 return Collections.emptyList();  // 如果没有找到条形码，返回空列表
             }
-            
+
             // 3. 使用这些 newbarcode 查询 bookinfo 表中的书名
             List<Map<String, String>> bookInfos = bookinfoMapper.selectBookNamesByNewbarcodes(newbarcodes);
-            
+
             // 4. 创建返回结果列表
             List<String> result = new ArrayList<>(newbarcodes.size());
-            
+
             // 5. 创建一个 Map 用于存储查询到的书籍信息，key 为条形码，value 为书名
             Map<String, String> barcodeToName = new HashMap<>();
-            
+
             // 6. 将查询到的书籍信息存入 barcodeToName 中
             for (Map<String, String> bookInfo : bookInfos) {
                 String barcode = bookInfo.get("newbarcode");
@@ -267,7 +266,7 @@ public class NewbarcodeServiceImpl extends ServiceImpl<NewbarcodeMapper, Newbarc
                     barcodeToName.put(barcode, name);  // 存储条形码和书籍名
                 }
             }
-            
+
             // 7. 遍历 newbarcodes 按顺序添加结果
             for (String barcode : newbarcodes) {
                 String name = barcodeToName.get(barcode);  // 获取书籍名
@@ -277,7 +276,7 @@ public class NewbarcodeServiceImpl extends ServiceImpl<NewbarcodeMapper, Newbarc
                     result.add(barcode + " 没有对应书籍信息");  // 否则加入条形码和提示信息
                 }
             }
-            
+
             return result;
         } catch (Exception e) {
             e.printStackTrace();
@@ -286,16 +285,13 @@ public class NewbarcodeServiceImpl extends ServiceImpl<NewbarcodeMapper, Newbarc
         }
     }
 
-    
-    
-    
     private List<SummaryInfoVo.FloorBookInfo> getBooksByFloor() {
         // 1. 查询出数据库中 createdtime 的最大值（即最后一次的时间）
         Date latestTime = newbarcodeMapper.selectMaxCreatedTime();
         // 调用 Mapper 方法查询各楼层的书籍数量
         return newbarcodeMapper.selectBooksByFloor(latestTime);
     }
-    
+
     private int getTotalBooks() {
         // 1. 查询出数据库中 createdtime 的最大值（即最后一次的时间）
         Date latestTime = newbarcodeMapper.selectMaxCreatedTime();
@@ -307,5 +303,27 @@ public class NewbarcodeServiceImpl extends ServiceImpl<NewbarcodeMapper, Newbarc
             // 如果没有找到最大时间，可能意味着没有记录，返回 0 或其他合适的值
             return 0;
         }
+    }
+
+
+    @Override
+    public StatusNum getTotalStatusNum() {
+
+        LambdaQueryWrapper<Newbarcode> matchWrapper = Wrappers.lambdaQuery();
+        LambdaQueryWrapper<Newbarcode> notMatchWrapper = Wrappers.lambdaQuery();
+        LambdaQueryWrapper<Newbarcode> fixedMatchWrapper = Wrappers.lambdaQuery();
+        LambdaQueryWrapper<Newbarcode> errorWrapper = Wrappers.lambdaQuery();
+        errorWrapper.eq(Newbarcode::getStatus, InventoryStatusEnum.errorStatus);
+        matchWrapper.eq(Newbarcode::getStatus, InventoryStatusEnum.matchStatus);
+        notMatchWrapper.eq(Newbarcode::getStatus, InventoryStatusEnum.notMatchStatus);
+        fixedMatchWrapper.eq(Newbarcode::getStatus, InventoryStatusEnum.fixedMatchStatus);
+        Long errorCount = newbarcodeMapper.selectCount(errorWrapper);
+        Long notMatchCount = newbarcodeMapper.selectCount(notMatchWrapper);
+        Long fixedMatchCount = newbarcodeMapper.selectCount(fixedMatchWrapper);
+        Long matchCount = newbarcodeMapper.selectCount(matchWrapper);
+        StatusNum statusNum = new StatusNum();
+        statusNum.setErrorStatusNum(errorCount);
+
+        return statusNum;
     }
 }
