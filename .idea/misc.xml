@@ -5,6 +5,7 @@
     <option name="originalFiles">
       <list>
         <option value="$PROJECT_DIR$/vue-admin-template/pom.xml" />
+        <option value="$PROJECT_DIR$/BookInventory/pom.xml" />
       </list>
     </option>
   </component>
