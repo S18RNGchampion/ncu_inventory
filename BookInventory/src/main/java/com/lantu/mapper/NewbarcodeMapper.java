@@ -68,6 +68,6 @@ public interface NewbarcodeMapper extends BaseMapper<Newbarcode> {
                                                     @Param("row") int row,
                                                     @Param("col") int col,
                                                     @Param("latestTime") Date latestTime);
-    @Select("select shelf, status, count(*) from newbarcode where floorname = #{floorNum} and shelf is not null and status is not null group by shelf, status")
+    @Select("select shelf, status, count(*) count from newbarcode where floorname = #{floorNum} and shelf is not null and status is not null group by shelf, status")
     List<ShelfStatusCountDTO> inventoryByFloor(@Param("floorNum") Integer floorNum);
 }
