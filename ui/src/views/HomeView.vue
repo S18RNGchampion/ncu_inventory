@@ -42,17 +42,7 @@
         </el-card>
       </el-col>
       <!-- 堆叠柱状图：盘点进度 -->
-      <el-col :span="12">
-        <el-card class="chart-card">
-          <template #header>
-            <div class="card-header">
-              <span>盘点进度</span>
-              <el-tag type="success">完成率：{{ completionRate }}%</el-tag>
-            </div>
-          </template>
-          <div class="chart-container" ref="stackBarChartRef"></div>
-        </el-card>
-      </el-col>
+
 
       <!-- 扇形图：所有书籍状态分布 -->
       <el-col :span="12">
@@ -87,23 +77,6 @@
           <div class="chart-container" ref="barChartRef"></div>
         </el-card>
       </el-col>
-
-      <!-- 折线图：状态变化趋势 -->
-      <el-col :span="12">
-        <el-card class="chart-card">
-          <template #header>
-            <div class="card-header">
-              <span>状态变化趋势</span>
-              <el-select v-model="selectedFloor" placeholder="选择楼层" style="width: 120px">
-                <el-option v-for="floor in floors" :key="floor" :label="`${floor}层`" :value="floor" />
-              </el-select>
-            </div>
-          </template>
-          <div class="chart-container" ref="lineChartRef"></div>
-        </el-card>
-      </el-col>
-
-
     </el-row>
   </page-container>
 </template>
@@ -118,8 +91,8 @@ const pieChartRef1 = ref<HTMLElement>()
 const pieChartRef = ref<HTMLElement>()
 const barChartRef = ref<HTMLElement>()
 const lineChartRef = ref<HTMLElement>()
-const stackBarChartRef = ref<HTMLElement>()
-const selectedFloor = ref(1)
+
+
 const floors = Array.from({ length: 18 }, (_, i) => i + 1)
 const completionRate = ref(68)
 // 生成随机数据（实际项目中应该从API获取）
@@ -250,95 +223,14 @@ onMounted(() => {
     ]
   })
 
-  // 初始化折线图
-  updateLineChart()
 
-  // 初始化堆叠柱状图
-  stackBarChart = echarts.init(stackBarChartRef.value!)
-  stackBarChart.setOption({
-    tooltip: {
-      trigger: 'axis',
-      axisPointer: {
-        type: 'shadow'
-      }
-    },
-    legend: {
-      data: ['已盘点', '未盘点']
-    },
-    xAxis: {
-      type: 'category',
-      data: floors.map(f => `${f}层`)
-    },
-    yAxis: {
-      type: 'value'
-    },
-    series: [
-      {
-        name: '已盘点',
-        type: 'bar',
-        stack: 'total',
-        data: floors.map(() => Math.floor(Math.random() * 800))
-      },
-      {
-        name: '未盘点',
-        type: 'bar',
-        stack: 'total',
-        data: floors.map(() => Math.floor(Math.random() * 400))
-      }
-    ]
-  })
+
+
 })
 
 // 更新折线图数据
-const updateLineChart = () => {
-  if (!lineChart) {
-    lineChart = echarts.init(lineChartRef.value!)
-  }
 
-  const dates = Array.from({ length: 7 }, (_, i) => {
-    const date = new Date()
-    date.setDate(date.getDate() - i)
-    return date.toLocaleDateString()
-  }).reverse()
 
-  lineChart.setOption({
-    tooltip: {
-      trigger: 'axis'
-    },
-    legend: {
-      data: ['存在', '可能存在', '不存在']
-    },
-    xAxis: {
-      type: 'category',
-      data: dates
-    },
-    yAxis: {
-      type: 'value'
-    },
-    series: [
-      {
-        name: '存在',
-        type: 'line',
-        data: dates.map(() => Math.floor(Math.random() * 1000))
-      },
-      {
-        name: '可能存在',
-        type: 'line',
-        data: dates.map(() => Math.floor(Math.random() * 200))
-      },
-      {
-        name: '不存在',
-        type: 'line',
-        data: dates.map(() => Math.floor(Math.random() * 100))
-      }
-    ]
-  })
-}
-
-// 监听楼层变化
-watch(selectedFloor, () => {
-  updateLineChart()
-})
 </script>
 
 <style scoped>
