@@ -5,10 +5,8 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.lantu.domain.po.Bookinfo;
 import com.lantu.domain.po.Newbarcode;
-import com.lantu.domain.vo.BookInfoVo;
-import com.lantu.domain.vo.FrameBooksVo;
-import com.lantu.domain.vo.SheltInfoVo;
-import com.lantu.domain.vo.SummaryInfoVo;
+import com.lantu.domain.po.ShelfStatusCountDTO;
+import com.lantu.domain.vo.*;
 import com.lantu.enums.InventoryStatusEnum;
 import com.lantu.mapper.BookinfoMapper;
 import com.lantu.mapper.NewbarcodeMapper;
@@ -313,7 +311,44 @@ public class NewbarcodeServiceImpl extends ServiceImpl<NewbarcodeMapper, Newbarc
         }
     }
 
+    @Override
+    public StatusNum getTotalStatusNum() {
+        return null;
+    }
 
+    @Override
+    public List<InventoryFloorVo> inventoryByFloor(Integer floorNum) {
+        List<ShelfStatusCountDTO> shelfStatusCountDTOList = newbarcodeMapper.inventoryByFloor(floorNum);
+        List<InventoryFloorVo> floorVoList = new ArrayList<>();
+        Map<String, List<ShelfStatusCountDTO>> shelfMap = shelfStatusCountDTOList.stream()
+                .collect(Collectors.groupingBy(ShelfStatusCountDTO::getShelf));
+        Set<Map.Entry<String, List<ShelfStatusCountDTO>>> entrySet = shelfMap.entrySet();
+        entrySet.forEach(entry -> {
+            StatusNum statusNum = new StatusNum();
+            for (ShelfStatusCountDTO shelfStatusCountDTO : entry.getValue()) {
+                // 4个 if 只可能进入一个
+                if (shelfStatusCountDTO.getStatus() == InventoryStatusEnum.errorStatus.getStatus()){
+                    statusNum.setErrorStatusNum(shelfStatusCountDTO.getCount());
+                }
+                if (shelfStatusCountDTO.getStatus() == InventoryStatusEnum.matchStatus.getStatus()){
+                    statusNum.setMatchStatusNum(shelfStatusCountDTO.getCount());
+                }
+                if (shelfStatusCountDTO.getStatus() == InventoryStatusEnum.notMatchStatus.getStatus()){
+                    statusNum.setNotMatchStatusNum(shelfStatusCountDTO.getCount());
+                }
+                if (shelfStatusCountDTO.getStatus() == InventoryStatusEnum.fixedMatchStatus.getStatus()){
+                    statusNum.setFixedMatchStatusNum(shelfStatusCountDTO.getCount());
+                }
+            }
+            InventoryFloorVo inventoryFloorVo = InventoryFloorVo.builder()
+                    .shelfNum(entry.getKey())
+                    .statusNum(statusNum)
+                    .build();
+            floorVoList.add(inventoryFloorVo);
+        });
+        return floorVoList;
+
+    }
 
 
     private List<SummaryInfoVo.FloorBookInfo> getBooksByFloor() {

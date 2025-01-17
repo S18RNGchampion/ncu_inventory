@@ -1,6 +1,9 @@
 package com.lantu.domain.vo;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 /**
  * @author XuShiPing
@@ -8,9 +11,14 @@ import lombok.Data;
  */
 
 @Data
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
 public class StatusNum {
-    Long matchStatusNum;
-    Long notMatchStatusNum;
-    Long fixedMatchStatusNum;
-    Long errorStatusNum;
+    private Long matchStatusNum = 0L;
+    private Long notMatchStatusNum = 0L;
+    private Long fixedMatchStatusNum = 0L;
+    private Long errorStatusNum = 0L;
+
+
 }
