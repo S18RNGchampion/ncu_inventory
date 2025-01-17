@@ -9,8 +9,8 @@ import lombok.Data;
 
 @Data
 public class StatusNum {
-    int matchStatusNum;
-    int notMatchStatusNum;
-    int fixedMatchStatusNum;
-    int errorStatusNum;
+    Long matchStatusNum;
+    Long notMatchStatusNum;
+    Long fixedMatchStatusNum;
+    Long errorStatusNum;
 }

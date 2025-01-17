@@ -10,4 +10,6 @@ import lombok.Data;
 public class TotalViewVo {
     private int totalNum;
     private int inventoryNum;
+    private StatusNum statusNum;
+    private FloorStatusList floorStatusList;
 }
