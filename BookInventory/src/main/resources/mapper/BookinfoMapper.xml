@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lantu.mapper.BookinfoMapper">
+
+    <select id="getTxtBookInf" resultType="com.lantu.domain.vo.BookInfoVo">
+        select name , author , address , newbarcode,call_number, book_status from ncu_library_bookinfo.bookinfo
+        where bookinfo.newbarcode in
+        <foreach collection="newbarcodeList" open="(" close=")" item="newbarcode" separator="," >
+            #{newbarcode}
+        </foreach>
+    </select>
+    <select id="getTxtBookInfo" resultType="com.lantu.domain.vo.BookInfoVo">
+        select * from ( select name , author , address ,
+        newbarcode,call_number, book_status from ncu_library_bookinfo.bookinfo
+        where bookinfo.newbarcode in
+        <foreach collection="newbarcodeList" open="(" close=")" item="newbarcode" separator=",">
+            #{newbarcode}
+        </foreach>) as tmp
+        limit #{startIndex}, #{pageSize}
+    </select>
+
+    <select id="selectBookNamesByNewbarcodes" resultType="java.util.Map">
+        <!-- 查询条形码和书籍名称，若书籍没有对应则返回 null -->
+        SELECT
+        newbarcode,
+        name
+        FROM ncu_library_bookinfo.bookinfo
+        WHERE newbarcode IN
+        <foreach collection="newbarcodes" item="newbarcode" open="(" close=")" separator=",">
+            #{newbarcode}
+        </foreach>
+        ORDER BY FIELD(newbarcode,
+        <foreach collection="newbarcodes" item="newbarcode" separator=",">
+            #{newbarcode}
+        </foreach>
+        )
+    </select>
+
+    <!--    <select id="selectBookNamesByNewbarcodes" resultType="java.lang.String">-->
+<!--        select name-->
+<!--        from ncu_library_bookinfo.bookinfo-->
+<!--        where newbarcode in-->
+<!--        <foreach collection="newbarcodes" item="newbarcode" open="(" close=")" separator=",">-->
+<!--            #{newbarcode}-->
+<!--        </foreach>-->
+<!--        order by field(newbarcode,-->
+<!--        <foreach collection="newbarcodes" item="newbarcode" separator=",">-->
+<!--            #{newbarcode}-->
+<!--        </foreach>)-->
+<!--    </select>-->
+
+</mapper>

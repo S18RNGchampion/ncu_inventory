@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/.idea/ncu_bookInventory.iml" filepath="$PROJECT_DIR$/.idea/ncu_bookInventory.iml" />
+      <module fileurl="file://$PROJECT_DIR$/vue-admin-template/x-admin.iml" filepath="$PROJECT_DIR$/vue-admin-template/x-admin.iml" />
+    </modules>
+  </component>
+</project>

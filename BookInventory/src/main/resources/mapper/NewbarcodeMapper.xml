@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lantu.mapper.NewbarcodeMapper">
+
+    <insert id="batchInsertNewbarcodes" parameterType="java.util.List">
+        INSERT INTO newbarcode (newbarcode, createdtime, status, floorname, shelf, rownum, colnum)
+        VALUES
+        <foreach collection="barcodeList" item="newbarcode" separator=",">
+            (#{newbarcode.newbarcode}, #{newbarcode.createdtime}, #{newbarcode.status},
+            #{newbarcode.floorname}, #{newbarcode.shelf}, #{newbarcode.rownum}, #{newbarcode.colnum})
+        </foreach>
+    </insert>
+
+<!--    <select id="selectFrameBooksData" resultType="com.lantu.domain.vo.FrameBooksVo">-->
+<!--        SELECT-->
+<!--        rownum AS row,   &lt;!&ndash; 显式映射 &ndash;&gt;-->
+<!--        colnum AS col,   &lt;!&ndash; 显式映射 &ndash;&gt;-->
+<!--        COUNT(*) AS bookCount-->
+<!--        FROM ncu_library_bookinfo.newbarcode-->
+<!--        WHERE floorname = #{floorName}-->
+<!--        AND shelf = #{shelfName}-->
+<!--        AND rownum IS NOT NULL-->
+<!--        AND colnum IS NOT NULL-->
+<!--        GROUP BY rownum, colnum-->
+<!--    </select>-->
+    <select id="selectFrameBooksData" resultType="com.lantu.domain.vo.FrameBooksVo">
+        SELECT
+        rownum AS row,   <!-- 显式映射 -->
+        colnum AS col,   <!-- 显式映射 -->
+        COUNT(*) AS bookCount
+        FROM ncu_library_bookinfo.newbarcode
+        WHERE floorname = #{floorName}
+        AND shelf = #{shelfName}
+        AND rownum IS NOT NULL
+        AND colnum IS NOT NULL
+        AND createdtime = #{latestTime}  <!-- 增加的过滤条件 -->
+        GROUP BY rownum, colnum
+    </select>
+    <select id="selectBooksDetailsByTimeAndLocation" resultType="com.lantu.domain.vo.BookInfoVo"></select>
+    <!-- 根据最大时间查询总书籍数 -->
+<!--    <select id="selectTotalBooksByTime" resultType="java.lang.Integer">-->
+<!--        SELECT COUNT(*)-->
+<!--        FROM newbarcode-->
+<!--        WHERE createdtime <= #{latestTime}-->
+<!--    </select>-->
+</mapper>
+
