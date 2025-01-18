@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.lantu.domain.po.Bookinfo;
+import com.lantu.domain.po.FloorInventoryStatusCountPo;
 import com.lantu.domain.po.Newbarcode;
 import com.lantu.domain.po.ShelfStatusCountDTO;
 import com.lantu.domain.vo.*;
@@ -20,7 +21,7 @@ import java.util.stream.Collectors;
 
 /**
  * <p>
- *  服务实现类
+ * 服务实现类
  * </p>
  *
  * @author author
@@ -31,6 +32,7 @@ public class NewbarcodeServiceImpl extends ServiceImpl<NewbarcodeMapper, Newbarc
 
     @Autowired
     private NewbarcodeMapper newbarcodeMapper;
+
     @Autowired
     private BookinfoMapper bookinfoMapper;
 
@@ -76,13 +78,13 @@ public class NewbarcodeServiceImpl extends ServiceImpl<NewbarcodeMapper, Newbarc
                         // 如果范围是从 A 到 B，按原顺序插入条形码
                         for (String barcode : tempBarcodes) {
                             Integer status;
-                            if (barcode.contains("error")){
+                            if (barcode.contains("error")) {
                                 status = InventoryStatusEnum.errorStatus.getStatus();
-                            }else {
+                            } else {
                                 LambdaQueryWrapper<Bookinfo> queryWrapper = Wrappers.lambdaQuery(Bookinfo.class)
                                         .eq(Bookinfo::getNewbarcode, barcode);
                                 Bookinfo selectOne = bookinfoMapper.selectOne(queryWrapper);
-                                if (selectOne!=null){
+                                if (selectOne != null) {
                                     status = InventoryStatusEnum.matchStatus.getStatus();
                                 } else {
                                     status = InventoryStatusEnum.notMatchStatus.getStatus();
@@ -137,13 +139,13 @@ public class NewbarcodeServiceImpl extends ServiceImpl<NewbarcodeMapper, Newbarc
     /**
      * 辅助方法：将条形码及其相关信息添加到条形码列表
      *
-     * @param barcodeList  最终插入数据库的条形码列表
-     * @param barcode      当前条形码
-     * @param floor        楼层信息
-     * @param shelf        书架编号
-     * @param rownum       行号
-     * @param colnum       列号
-     * @param currentTime  当前时间戳
+     * @param barcodeList 最终插入数据库的条形码列表
+     * @param barcode     当前条形码
+     * @param floor       楼层信息
+     * @param shelf       书架编号
+     * @param rownum      行号
+     * @param colnum      列号
+     * @param currentTime 当前时间戳
      */
     private void addToBarcodeList(List<Newbarcode> barcodeList, String barcode,
                                   String floor, String shelf, String rownum, String colnum, Date currentTime) {
@@ -158,9 +160,6 @@ public class NewbarcodeServiceImpl extends ServiceImpl<NewbarcodeMapper, Newbarc
         // 将新条形码对象添加到列表中
         barcodeList.add(newbarcode);
     }
-
-
-
 
 
 //    @Override
@@ -231,7 +230,7 @@ public class NewbarcodeServiceImpl extends ServiceImpl<NewbarcodeMapper, Newbarc
         try {
             Date latestTime = newbarcodeMapper.selectMaxCreatedTime();
             // 调用 Mapper 方法获取书框书籍数据
-            List<FrameBooksVo> frameBooksData = newbarcodeMapper.selectFrameBooksData(floorName, shelfName,latestTime);
+            List<FrameBooksVo> frameBooksData = newbarcodeMapper.selectFrameBooksData(floorName, shelfName, latestTime);
             System.out.println("Fetched frameBooksData: " + frameBooksData); // 输出数据
             return frameBooksData;
         } catch (Exception e) {
@@ -241,7 +240,7 @@ public class NewbarcodeServiceImpl extends ServiceImpl<NewbarcodeMapper, Newbarc
         }
     }
 
-//    @Override
+    //    @Override
 //    public List<String> getBooksDetailsData(int floorName, String shelfName, int row, int col) {
 //        try {
 //            // 1. 查询数据库中 createdtime 的最大值（即最后一次的时间）
@@ -311,10 +310,6 @@ public class NewbarcodeServiceImpl extends ServiceImpl<NewbarcodeMapper, Newbarc
         }
     }
 
-    @Override
-    public StatusNum getTotalStatusNum() {
-        return null;
-    }
 
     @Override
     public List<InventoryFloorVo> inventoryByFloor(Integer floorNum) {
@@ -327,16 +322,16 @@ public class NewbarcodeServiceImpl extends ServiceImpl<NewbarcodeMapper, Newbarc
             StatusNum statusNum = new StatusNum();
             for (ShelfStatusCountDTO shelfStatusCountDTO : entry.getValue()) {
                 // 4个 if 只可能进入一个
-                if (shelfStatusCountDTO.getStatus() == InventoryStatusEnum.errorStatus.getStatus()){
+                if (shelfStatusCountDTO.getStatus() == InventoryStatusEnum.errorStatus.getStatus()) {
                     statusNum.setErrorStatusNum(shelfStatusCountDTO.getCount());
                 }
-                if (shelfStatusCountDTO.getStatus() == InventoryStatusEnum.matchStatus.getStatus()){
+                if (shelfStatusCountDTO.getStatus() == InventoryStatusEnum.matchStatus.getStatus()) {
                     statusNum.setMatchStatusNum(shelfStatusCountDTO.getCount());
                 }
-                if (shelfStatusCountDTO.getStatus() == InventoryStatusEnum.notMatchStatus.getStatus()){
+                if (shelfStatusCountDTO.getStatus() == InventoryStatusEnum.notMatchStatus.getStatus()) {
                     statusNum.setNotMatchStatusNum(shelfStatusCountDTO.getCount());
                 }
-                if (shelfStatusCountDTO.getStatus() == InventoryStatusEnum.fixedMatchStatus.getStatus()){
+                if (shelfStatusCountDTO.getStatus() == InventoryStatusEnum.fixedMatchStatus.getStatus()) {
                     statusNum.setFixedMatchStatusNum(shelfStatusCountDTO.getCount());
                 }
             }
@@ -369,5 +364,60 @@ public class NewbarcodeServiceImpl extends ServiceImpl<NewbarcodeMapper, Newbarc
             // 如果没有找到最大时间，可能意味着没有记录，返回 0 或其他合适的值
             return 0;
         }
+    }
+
+
+    @Override
+    public StatusNum getTotalStatusNum() {
+        LambdaQueryWrapper<Newbarcode> matchWrapper = Wrappers.lambdaQuery();
+        LambdaQueryWrapper<Newbarcode> notMatchWrapper = Wrappers.lambdaQuery();
+        LambdaQueryWrapper<Newbarcode> fixedMatchWrapper = Wrappers.lambdaQuery();
+        LambdaQueryWrapper<Newbarcode> errorWrapper = Wrappers.lambdaQuery();
+        errorWrapper.eq(Newbarcode::getStatus, InventoryStatusEnum.errorStatus.getStatus());
+        matchWrapper.eq(Newbarcode::getStatus, InventoryStatusEnum.matchStatus.getStatus());
+        notMatchWrapper.eq(Newbarcode::getStatus, InventoryStatusEnum.notMatchStatus.getStatus());
+        fixedMatchWrapper.eq(Newbarcode::getStatus, InventoryStatusEnum.fixedMatchStatus.getStatus());
+        Long errorCount = newbarcodeMapper.selectCount(errorWrapper);
+        Long notMatchCount = newbarcodeMapper.selectCount(notMatchWrapper);
+        Long fixedMatchCount = newbarcodeMapper.selectCount(fixedMatchWrapper);
+        Long matchCount = newbarcodeMapper.selectCount(matchWrapper);
+        StatusNum statusNum = new StatusNum();
+        statusNum.setErrorStatusNum(errorCount);
+        statusNum.setNotMatchStatusNum(notMatchCount);
+        statusNum.setFixedMatchStatusNum(fixedMatchCount);
+        statusNum.setMatchStatusNum(matchCount);
+        return statusNum;
+    }
+
+
+    public Map<Integer, StatusNum> statisticFloorStatus() {
+        List<FloorInventoryStatusCountPo> floorStatusCountPos = newbarcodeMapper.selectFloorInventoryStatus();
+        Map<Integer, StatusNum> statusNumMap = new HashMap<>();
+        List<FloorInventoryStatusCountPo> filterFloorStatusCountPos = floorStatusCountPos.stream().filter(floorStatusCountPo -> floorStatusCountPo.getStatus() != null && floorStatusCountPo.getFloorname() != null).collect(Collectors.toList());
+        for (FloorInventoryStatusCountPo floorStatusCountPo : filterFloorStatusCountPos) {
+            Integer floorname = floorStatusCountPo.getFloorname();
+            StatusNum statusNum = statusNumMap.get(floorname);
+            if (statusNum == null) {
+                statusNum = new StatusNum();
+                statusNumMap.put(floorname, statusNum);
+            }
+
+            switch (floorStatusCountPo.getStatus()) {
+                case 1:
+                    statusNum.setMatchStatusNum((long) floorStatusCountPo.getStatus_count());
+                    break;
+                case 2:
+                    statusNum.setNotMatchStatusNum((long) floorStatusCountPo.getStatus_count());
+                    break;
+                case 3:
+                    statusNum.setFixedMatchStatusNum((long) floorStatusCountPo.getStatus_count());
+                    break;
+                case 0:
+                    statusNum.setErrorStatusNum((long) floorStatusCountPo.getStatus_count());
+                    break;
+            }
+
+        }
+        return statusNumMap;
     }
 }
