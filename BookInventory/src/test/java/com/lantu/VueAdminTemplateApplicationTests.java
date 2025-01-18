@@ -6,10 +6,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.lantu.common.vo.Result;
-import com.lantu.domain.po.Bookinfo;
-import com.lantu.domain.po.FloorInventoryStatusCountPo;
-import com.lantu.domain.po.Newbarcode;
-import com.lantu.domain.po.User;
+import com.lantu.domain.po.*;
 import com.lantu.domain.vo.StatusNum;
 import com.lantu.domain.vo.TotalViewVo;
 import com.lantu.enums.InventoryStatusEnum;
@@ -68,10 +65,9 @@ class VueAdminTemplateApplicationTests {
 
     @Test
     public void tes() {
-        LambdaQueryWrapper<Newbarcode> newbarcodeLambdaQueryWrapper= Wrappers.lambdaQuery();
-        newbarcodeLambdaQueryWrapper.isNull(Newbarcode::getStatus);
-        Long l = newbarcodeMapper.selectCount(newbarcodeLambdaQueryWrapper);
-        System.out.println(l);
+        List<String> shelfByFloorNum = newbarcodeMapper.getShelfByFloorNum(14);
+
+        System.out.println("safd");
     }
 
 

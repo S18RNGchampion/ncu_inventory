@@ -1,5 +1,6 @@
 package com.lantu.service;
 
+import com.lantu.common.vo.Result;
 import com.lantu.domain.po.Newbarcode;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.lantu.domain.vo.*;
@@ -41,4 +42,7 @@ public interface INewbarcodeService extends IService<Newbarcode> {
      * 统计每个楼层盘点书不同状态的数量
      */
     Map<Integer, StatusNum> statisticFloorStatus();
+
+
+    Result<List<String>> getShelvesList(Integer floorNum);
 }

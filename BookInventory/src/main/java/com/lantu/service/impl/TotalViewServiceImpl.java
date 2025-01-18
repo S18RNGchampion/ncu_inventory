@@ -34,7 +34,7 @@ public class TotalViewServiceImpl implements ITotalViewService {
         TotalViewVo totalViewVo = new TotalViewVo();
         LambdaQueryWrapper<Bookinfo> bookinfoLambdaQueryWrapper = Wrappers.lambdaQuery();
         LambdaQueryWrapper<Newbarcode> newbarcodeLambdaQueryWrapper = Wrappers.lambdaQuery();
-        newbarcodeLambdaQueryWrapper.isNull(Newbarcode::getStatus);
+        newbarcodeLambdaQueryWrapper.isNotNull(Newbarcode::getStatus);
 
         LambdaQueryWrapper<Newbarcode> inventoryNumLambdaQueryWrapper = Wrappers.lambdaQuery();
         inventoryNumLambdaQueryWrapper.isNull(Newbarcode::getStatus);
