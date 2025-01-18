@@ -34,7 +34,7 @@ public class Newbarcode implements Serializable {
 
     private String newbarcode;
 
-    private int status;
+    private Integer status;
 
     private Date createdtime;
 

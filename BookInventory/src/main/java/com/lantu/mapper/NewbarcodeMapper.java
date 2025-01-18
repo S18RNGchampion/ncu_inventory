@@ -1,5 +1,7 @@
 package com.lantu.mapper;
 
+import com.lantu.domain.po.FloorInventoryStatusCountPo;
+
 import com.lantu.domain.po.Newbarcode;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.lantu.domain.po.ShelfStatusCountDTO;
@@ -70,4 +72,6 @@ public interface NewbarcodeMapper extends BaseMapper<Newbarcode> {
                                                     @Param("latestTime") Date latestTime);
     @Select("select shelf, status, count(*) count from newbarcode where floorname = #{floorNum} and shelf is not null and status is not null group by shelf, status")
     List<ShelfStatusCountDTO> inventoryByFloor(@Param("floorNum") Integer floorNum);
+
+    List<FloorInventoryStatusCountPo> selectFloorInventoryStatus();
 }

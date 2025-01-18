@@ -8,7 +8,7 @@ import lombok.Data;
  */
 
 @Data
-public class FloorStatusCountPo {
+public class FloorInventoryStatusCountPo {
     private  Integer floorname;
     private Integer status;
     private int status_count;

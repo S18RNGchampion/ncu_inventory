@@ -2,14 +2,17 @@ package com.lantu.domain.vo;
 
 import lombok.Data;
 
+import java.util.List;
+import java.util.Map;
+
 /**
  * @author XuShiPing
  * @since 2025/1/17  21:28
  */
 @Data
 public class TotalViewVo {
-    private int totalNum;
-    private int inventoryNum;
+    private Long totalNum;
+    private Long inventoryNum;
     private StatusNum statusNum;
-    private FloorStatusList floorStatusList;
+    private Map<Integer,StatusNum> floorStatusList;
 }

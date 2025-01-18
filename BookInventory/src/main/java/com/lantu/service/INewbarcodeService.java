@@ -5,10 +5,11 @@ import com.baomidou.mybatisplus.extension.service.IService;
 import com.lantu.domain.vo.*;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * <p>
- *  服务类
+ * 服务类
  * </p>
  *
  * @author author
@@ -27,7 +28,17 @@ public interface INewbarcodeService extends IService<Newbarcode> {
 
     List<String> getBooksDetailsData(int floorName, String shelfName, int row, int col);
 
+    List<InventoryFloorVo> inventoryByFloor(Integer floorNum);
+
+    /**
+     * 统计总共盘点图书数量
+     * @return
+     */
     StatusNum getTotalStatusNum();
 
-    List<InventoryFloorVo> inventoryByFloor(Integer floorNum);
+
+    /**
+     * 统计每个楼层盘点书不同状态的数量
+     */
+    Map<Integer, StatusNum> statisticFloorStatus();
 }

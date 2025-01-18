@@ -4,16 +4,18 @@ server:
 spring:
   datasource:
     username: root
-    password: Hjw1829669
+    password: password
     url: jdbc:mysql://127.0.0.1:3306/ncu_library_bookinfo?zeroDateTimeBehavior=convertToNull
   data:
     redis:
       port: 6379
-      host: Hjw1829669
+      host: localhost
 
 mybatis-plus:
   mapper-locations: classpath:mapper/*.xml
   type-aliases-package: com.lantu.domain
+  configuration:
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
 
 logging:
   level:

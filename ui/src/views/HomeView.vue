@@ -33,7 +33,7 @@
               <span>图书盘点状况</span>
               <el-tooltip content="展示所有图书的状态分布情况">
                 <el-icon>
-                  <QuestionFilled />
+                  <QuestionFilled/>
                 </el-icon>
               </el-tooltip>
             </div>
@@ -52,7 +52,7 @@
               <span>图书状态分布</span>
               <el-tooltip content="展示所有图书的状态分布情况">
                 <el-icon>
-                  <QuestionFilled />
+                  <QuestionFilled/>
                 </el-icon>
               </el-tooltip>
             </div>
@@ -69,7 +69,7 @@
               <span>各楼层图书状态</span>
               <el-tooltip content="展示每层图书的数量和状态分布">
                 <el-icon>
-                  <QuestionFilled />
+                  <QuestionFilled/>
                 </el-icon>
               </el-tooltip>
             </div>
@@ -82,36 +82,57 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, watch, computed } from 'vue'
-import { QuestionFilled } from '@element-plus/icons-vue'
+import {ref, onMounted, watch, computed} from 'vue'
+import {QuestionFilled} from '@element-plus/icons-vue'
 import * as echarts from 'echarts'
 import PageContainer from '@/components/layout/PageContainer.vue'
+import {getTotalView} from '@/js/api/TotalView'
 
 const pieChartRef1 = ref<HTMLElement>()
 const pieChartRef = ref<HTMLElement>()
 const barChartRef = ref<HTMLElement>()
-const lineChartRef = ref<HTMLElement>()
 
+interface StatusNum {
+  matchStatusNum: number;
+  notMatchStatusNum: number;
+  fixedMatchStatusNum: number;
+  errorStatusNum: number;
+}
 
-const floors = Array.from({ length: 18 }, (_, i) => i + 1)
-const completionRate = ref(68)
-// 生成随机数据（实际项目中应该从API获取）
-const checkedData = floors.map(() => Math.floor(Math.random() * 800))
-const uncheckedData = floors.map(() => Math.floor(Math.random() * 400))
+interface TotalData {
+  totalNum: number;
+  inventoryNum: number;
+  statusNum: StatusNum;
+  floorStatusList: Record<string, StatusNum>;
+}
+
+// 存储后端返回的数据
+const totalData = ref<TotalData>({
+  totalNum: 0,
+  inventoryNum: 0,
+  statusNum: {
+    matchStatusNum: 0,
+    notMatchStatusNum: 0,
+    fixedMatchStatusNum: 0,
+    errorStatusNum: 0
+  },
+  floorStatusList: {}
+})
 
 // 计算总数据
-const totalChecked = computed(() => checkedData.reduce((sum, curr) => sum + curr, 0))
-const totalUnchecked = computed(() => uncheckedData.reduce((sum, curr) => sum + curr, 0))
-const totalBooks = computed(() => totalChecked.value + totalUnchecked.value)
+const totalChecked = computed(() => totalData.value.inventoryNum)
+const totalUnchecked = computed(() => totalData.value.totalNum - totalData.value.inventoryNum)
+const totalBooks = computed(() => totalData.value.totalNum)
 
 // 初始化图表
 let pieChart: echarts.ECharts
 let barChart: echarts.ECharts
-let lineChart: echarts.ECharts
-let stackBarChart: echarts.ECharts
 
-onMounted(() => {
+onMounted(async () => {
+  const result = await getTotalView();
+  totalData.value = result;
 
+  // 初始化盘点情况饼图
   pieChart = echarts.init(pieChartRef1.value!)
   pieChart.setOption({
     tooltip: {
@@ -146,20 +167,16 @@ onMounted(() => {
           }
         },
         data: [
-          { value: totalChecked.value, name: '已盘点' },
-          { value: totalUnchecked.value, name: '未盘点' }
+          {value: totalChecked.value, name: '已盘点'},
+          {value: totalUnchecked.value, name: '未盘点'}
         ]
       }
     ]
   })
 
-  // 初始化扇形图
+  // 初始化图书状态分布饼图
   pieChart = echarts.init(pieChartRef.value!)
   pieChart.setOption({
-    title: {
-      text: '图书状态分布',
-      left: 'center'
-    },
     tooltip: {
       trigger: 'item'
     },
@@ -171,9 +188,10 @@ onMounted(() => {
       type: 'pie',
       radius: '50%',
       data: [
-        { value: 15000, name: '存在' },
-        { value: 3000, name: '可能存在' },
-        { value: 2000, name: '不存在' }
+        {value: totalData.value.statusNum.matchStatusNum, name: '匹配'},
+        {value: totalData.value.statusNum.fixedMatchStatusNum, name: '待确定'},
+        {value: totalData.value.statusNum.notMatchStatusNum, name: '未匹配'},
+        {value: totalData.value.statusNum.errorStatusNum, name: '识别失败'}
       ],
       emphasis: {
         itemStyle: {
@@ -185,7 +203,10 @@ onMounted(() => {
     }]
   })
 
-  // 初始化柱状图
+  // 初始化各楼层状态柱状图
+  const floorData = totalData.value.floorStatusList;
+  const floors = Object.keys(floorData).sort((a, b) => Number(a) - Number(b));
+
   barChart = echarts.init(barChartRef.value!)
   barChart.setOption({
     tooltip: {
@@ -195,7 +216,7 @@ onMounted(() => {
       }
     },
     legend: {
-      data: ['存在', '可能存在', '不存在']
+      data: ['匹配', '待确定', '未匹配', '识别失败']
     },
     xAxis: {
       type: 'category',
@@ -206,26 +227,27 @@ onMounted(() => {
     },
     series: [
       {
-        name: '存在',
+        name: '匹配',
         type: 'bar',
-        data: floors.map(() => Math.floor(Math.random() * 1000))
+        data: floors.map(floor => floorData[floor]?.matchStatusNum || 0)
       },
       {
-        name: '可能存在',
+        name: '待确定',
         type: 'bar',
-        data: floors.map(() => Math.floor(Math.random() * 200))
+        data: floors.map(floor => floorData[floor]?.fixedMatchStatusNum || 0)
       },
       {
-        name: '不存在',
+        name: '未匹配',
         type: 'bar',
-        data: floors.map(() => Math.floor(Math.random() * 100))
+        data: floors.map(floor => floorData[floor]?.notMatchStatusNum || 0)
+      },
+      {
+        name: '识别失败',
+        type: 'bar',
+        data: floors.map(floor => floorData[floor]?.errorStatusNum || 0)
       }
     ]
   })
-
-
-
-
 })
 
 // 更新折线图数据

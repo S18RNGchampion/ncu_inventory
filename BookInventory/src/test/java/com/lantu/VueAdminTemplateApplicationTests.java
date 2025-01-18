@@ -5,12 +5,13 @@ import com.baomidou.mybatisplus.core.conditions.Wrapper;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.lantu.common.vo.Result;
 import com.lantu.domain.po.Bookinfo;
-import com.lantu.domain.po.FloorStatusCountPo;
+import com.lantu.domain.po.FloorInventoryStatusCountPo;
 import com.lantu.domain.po.Newbarcode;
 import com.lantu.domain.po.User;
-import com.lantu.domain.vo.FloorStatusList;
 import com.lantu.domain.vo.StatusNum;
+import com.lantu.domain.vo.TotalViewVo;
 import com.lantu.enums.InventoryStatusEnum;
 import com.lantu.mapper.BookinfoMapper;
 import com.lantu.mapper.NewbarcodeMapper;
@@ -65,28 +66,13 @@ class VueAdminTemplateApplicationTests {
     @Autowired
     private NewbarcodeMapper newbarcodeMapper;
 
-//    @Test
-//    public void tes(){
-//        List<FloorStatusCountPo> floorStatusCountPos = newbarcodeMapper.selectFloorInventoryStatus();
-//        FloorStatusList floorStatusList=new FloorStatusList();
-//        Map<Integer,>
-//        for(FloorStatusCountPo floorStatusCountPo : floorStatusCountPos){
-//            switch (floorStatusCountPo.getStatus()) {
-//                case 1:
-//                    statusCount.put("matchStatusNum", statusCount.get("matchStatusNum") + 1);
-//                    break;
-//                case 2:
-//                    statusCount.put("notMatchStatusNum", statusCount.get("notMatchStatusNum") + 1);
-//                    break;
-//                case 3:
-//                    statusCount.put("fixedMatchStatusNum", statusCount.get("fixedMatchStatusNum") + 1);
-//                    break;
-//                case 4:  // 假设 `4` 代表某个其他状态
-//                    statusCount.put("errorStatusNum", statusCount.get("errorStatusNum") + 1);
-//                    break;
-//                default:
-//                    break;
-//            }
-//        }
-//    }
+    @Test
+    public void tes() {
+        LambdaQueryWrapper<Newbarcode> newbarcodeLambdaQueryWrapper= Wrappers.lambdaQuery();
+        newbarcodeLambdaQueryWrapper.isNull(Newbarcode::getStatus);
+        Long l = newbarcodeMapper.selectCount(newbarcodeLambdaQueryWrapper);
+        System.out.println(l);
+    }
+
+
 }

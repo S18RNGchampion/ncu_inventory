@@ -2,7 +2,7 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.lantu.mapper.NewbarcodeMapper">
 
-    <resultMap type="FloorStatusCountPo" id="FloorStatusCountPoMap">
+    <resultMap type="FloorInventoryStatusCountPo" id="FloorStatusCountPoMap">
         <result property="floorname" column="floorname"/>
         <result property="status" column="status"/>
         <result property="status_count" column="status_count"/>

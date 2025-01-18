@@ -1,8 +1,7 @@
-package com.lantu.controller;
+package com.lantu.service;
 
 import com.lantu.common.vo.Result;
 import com.lantu.domain.vo.TotalViewVo;
-import com.lantu.service.ITotalViewService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -12,14 +11,8 @@ import org.springframework.web.bind.annotation.RestController;
  * @since 2025/1/17  22:08
  */
 
-@RestController
-public class TotalViewController {
 
-    @Autowired
-    private ITotalViewService iTotalViewService;
+public interface ITotalViewService {
 
-    @GetMapping("/totalView")
-    public Result<TotalViewVo> totalView(){
-        return iTotalViewService.getTotalView();
-    }
+   Result<TotalViewVo> getTotalView();
 }
