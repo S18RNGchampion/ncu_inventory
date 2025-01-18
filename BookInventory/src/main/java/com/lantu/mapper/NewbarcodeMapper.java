@@ -74,4 +74,7 @@ public interface NewbarcodeMapper extends BaseMapper<Newbarcode> {
     List<ShelfStatusCountDTO> inventoryByFloor(@Param("floorNum") Integer floorNum);
 
     List<FloorInventoryStatusCountPo> selectFloorInventoryStatus();
+
+    @Select("select shelf from newbarcode where floorname=#{floorNum} and shelf is not null and status is not null group by shelf")
+    List<String> getShelvesListByFloorNum(@Param("floorNum") Integer floorNum);
 }

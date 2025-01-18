@@ -3,6 +3,7 @@ package com.lantu.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.lantu.common.vo.Result;
 import com.lantu.domain.po.Bookinfo;
 import com.lantu.domain.po.FloorInventoryStatusCountPo;
 import com.lantu.domain.po.Newbarcode;
@@ -419,5 +420,11 @@ public class NewbarcodeServiceImpl extends ServiceImpl<NewbarcodeMapper, Newbarc
 
         }
         return statusNumMap;
+    }
+
+    @Override
+    public Result<List<String>> getShelvesList(Integer floorNum) {
+        List<String> shelfByFloorNum = newbarcodeMapper.getShelvesListByFloorNum(floorNum);
+        return Result.success(shelfByFloorNum);
     }
 }
