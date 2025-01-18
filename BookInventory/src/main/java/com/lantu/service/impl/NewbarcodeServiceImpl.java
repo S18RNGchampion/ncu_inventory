@@ -308,7 +308,6 @@ public class NewbarcodeServiceImpl extends ServiceImpl<NewbarcodeMapper, Newbarc
 
     @Override
     public StatusNum getTotalStatusNum() {
-
         LambdaQueryWrapper<Newbarcode> matchWrapper = Wrappers.lambdaQuery();
         LambdaQueryWrapper<Newbarcode> notMatchWrapper = Wrappers.lambdaQuery();
         LambdaQueryWrapper<Newbarcode> fixedMatchWrapper = Wrappers.lambdaQuery();
@@ -323,7 +322,25 @@ public class NewbarcodeServiceImpl extends ServiceImpl<NewbarcodeMapper, Newbarc
         Long matchCount = newbarcodeMapper.selectCount(matchWrapper);
         StatusNum statusNum = new StatusNum();
         statusNum.setErrorStatusNum(errorCount);
-
+        statusNum.setNotMatchStatusNum(notMatchCount);
+        statusNum.setFixedMatchStatusNum(fixedMatchCount);
+        statusNum.setMatchStatusNum(matchCount);
         return statusNum;
+    }
+
+    @Override
+    public List<Newbarcode> getFloorInventoryStatus() {
+//        List<Newbarcode> newbarcodes = newbarcodeMapper.selectFloorInventoryStatus();
+//        List<Map<String, Object>> maps = calculateFloorStatus(newbarcodes);
+
+        return null;
+    }
+
+
+    // 统计每个楼层不同状态的数量
+    private List<Map<String, Object>> calculateFloorStatus(List<Newbarcode> newbarcodeList) {
+
+
+        return null;
     }
 }

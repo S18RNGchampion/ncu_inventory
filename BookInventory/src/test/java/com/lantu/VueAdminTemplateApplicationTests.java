@@ -6,14 +6,19 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.lantu.domain.po.Bookinfo;
+import com.lantu.domain.po.FloorStatusCountPo;
 import com.lantu.domain.po.Newbarcode;
 import com.lantu.domain.po.User;
+import com.lantu.domain.vo.FloorStatusList;
+import com.lantu.domain.vo.StatusNum;
 import com.lantu.enums.InventoryStatusEnum;
 import com.lantu.mapper.BookinfoMapper;
 import com.lantu.mapper.NewbarcodeMapper;
 import com.lantu.mapper.UserMapper;
 
 
+import lombok.AllArgsConstructor;
+import lombok.Data;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -21,6 +26,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import javax.annotation.Resource;
 import java.io.*;
 import java.util.*;
+import java.util.stream.Collectors;
 
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -30,7 +36,7 @@ class VueAdminTemplateApplicationTests {
     private BookinfoMapper bookinfoMapper;
 
     @Test
-    void addnewbarcode(){
+    void addnewbarcode() {
 
         String filePath = "D:\\Desktop\\match1.txt"; // 请替换为你的txt文件路径
         Map<String, String> dataMap = new HashMap<>();
@@ -51,35 +57,36 @@ class VueAdminTemplateApplicationTests {
         for (Map.Entry<String, String> entry : dataMap.entrySet()) {
             System.out.println("Key: " + entry.getKey() + ", Value: " + entry.getValue());
             LambdaUpdateWrapper<Bookinfo> wrapper = new LambdaUpdateWrapper<>();
-            wrapper.eq(Bookinfo::getBarcode , entry.getKey()).set(Bookinfo::getNewbarcode , entry.getValue());
-            bookinfoMapper.update(null , wrapper);
+            wrapper.eq(Bookinfo::getBarcode, entry.getKey()).set(Bookinfo::getNewbarcode, entry.getValue());
+            bookinfoMapper.update(null, wrapper);
         }
     }
 
     @Autowired
     private NewbarcodeMapper newbarcodeMapper;
 
-    @Test
-    public void test1(){
-
-
-        LambdaQueryWrapper<Newbarcode> matchWrapper = Wrappers.lambdaQuery();
-        LambdaQueryWrapper<Newbarcode> notMatchWrapper = Wrappers.lambdaQuery();
-        LambdaQueryWrapper<Newbarcode> fixedMatchWrapper = Wrappers.lambdaQuery();
-        LambdaQueryWrapper<Newbarcode> errorWrapper = Wrappers.lambdaQuery();
-        errorWrapper.eq(Newbarcode::getStatus, InventoryStatusEnum.errorStatus);
-        matchWrapper.eq(Newbarcode::getStatus, InventoryStatusEnum.matchStatus);
-        notMatchWrapper.eq(Newbarcode::getStatus, InventoryStatusEnum.notMatchStatus);
-        fixedMatchWrapper.eq(Newbarcode::getStatus, InventoryStatusEnum.fixedMatchStatus);
-        Long errorCount = newbarcodeMapper.selectCount(errorWrapper);
-        Long notMatchCount = newbarcodeMapper.selectCount(notMatchWrapper);
-        Long fixedMatchCount = newbarcodeMapper.selectCount(fixedMatchWrapper);
-        Long matchCount = newbarcodeMapper.selectCount(matchWrapper);
-
-        System.out.println(l);
-    }
-
-
-
-
+//    @Test
+//    public void tes(){
+//        List<FloorStatusCountPo> floorStatusCountPos = newbarcodeMapper.selectFloorInventoryStatus();
+//        FloorStatusList floorStatusList=new FloorStatusList();
+//        Map<Integer,>
+//        for(FloorStatusCountPo floorStatusCountPo : floorStatusCountPos){
+//            switch (floorStatusCountPo.getStatus()) {
+//                case 1:
+//                    statusCount.put("matchStatusNum", statusCount.get("matchStatusNum") + 1);
+//                    break;
+//                case 2:
+//                    statusCount.put("notMatchStatusNum", statusCount.get("notMatchStatusNum") + 1);
+//                    break;
+//                case 3:
+//                    statusCount.put("fixedMatchStatusNum", statusCount.get("fixedMatchStatusNum") + 1);
+//                    break;
+//                case 4:  // 假设 `4` 代表某个其他状态
+//                    statusCount.put("errorStatusNum", statusCount.get("errorStatusNum") + 1);
+//                    break;
+//                default:
+//                    break;
+//            }
+//        }
+//    }
 }

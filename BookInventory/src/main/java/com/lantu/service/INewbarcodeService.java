@@ -31,4 +31,6 @@ public interface INewbarcodeService extends IService<Newbarcode> {
     List<String> getBooksDetailsData(int floorName, String shelfName, int row, int col);
 
     StatusNum getTotalStatusNum();
+
+    List<Newbarcode> getFloorInventoryStatus();
 }
