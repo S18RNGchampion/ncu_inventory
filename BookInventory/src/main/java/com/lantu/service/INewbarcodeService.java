@@ -2,10 +2,7 @@ package com.lantu.service;
 
 import com.lantu.domain.po.Newbarcode;
 import com.baomidou.mybatisplus.extension.service.IService;
-import com.lantu.domain.vo.FrameBooksVo;
-import com.lantu.domain.vo.SheltInfoVo;
-import com.lantu.domain.vo.StatusNum;
-import com.lantu.domain.vo.SummaryInfoVo;
+import com.lantu.domain.vo.*;
 
 import java.util.List;
 
@@ -32,5 +29,5 @@ public interface INewbarcodeService extends IService<Newbarcode> {
 
     StatusNum getTotalStatusNum();
 
-    List<Newbarcode> getFloorInventoryStatus();
+    List<InventoryFloorVo> inventoryByFloor(Integer floorNum);
 }

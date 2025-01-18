@@ -3,7 +3,9 @@ package com.lantu.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.lantu.domain.po.Bookinfo;
 import com.lantu.domain.po.Newbarcode;
+import com.lantu.domain.po.ShelfStatusCountDTO;
 import com.lantu.domain.vo.*;
 import com.lantu.enums.InventoryStatusEnum;
 import com.lantu.mapper.BookinfoMapper;
@@ -18,7 +20,7 @@ import java.util.stream.Collectors;
 
 /**
  * <p>
- * 服务实现类
+ *  服务实现类
  * </p>
  *
  * @author author
@@ -74,7 +76,29 @@ public class NewbarcodeServiceImpl extends ServiceImpl<NewbarcodeMapper, Newbarc
                     if (startChar < endChar) {
                         // 如果范围是从 A 到 B，按原顺序插入条形码
                         for (String barcode : tempBarcodes) {
-                            addToBarcodeList(barcodeList, barcode, floor, shelf, rownum, colnum, currentTime);
+                            Integer status;
+                            if (barcode.contains("error")){
+                                status = InventoryStatusEnum.errorStatus.getStatus();
+                            }else {
+                                LambdaQueryWrapper<Bookinfo> queryWrapper = Wrappers.lambdaQuery(Bookinfo.class)
+                                        .eq(Bookinfo::getNewbarcode, barcode);
+                                Bookinfo selectOne = bookinfoMapper.selectOne(queryWrapper);
+                                if (selectOne!=null){
+                                    status = InventoryStatusEnum.matchStatus.getStatus();
+                                } else {
+                                    status = InventoryStatusEnum.notMatchStatus.getStatus();
+                                }
+                            }
+                            Newbarcode newbarcode = Newbarcode.builder()
+                                    .newbarcode(barcode)
+                                    .status(status)
+                                    .floorname(Integer.parseInt(floor))
+                                    .shelf(shelf)
+                                    .rownum(Integer.parseInt(rownum))
+                                    .colnum(Integer.parseInt(colnum))
+                                    .createdtime(currentTime)
+                                    .build();
+                            barcodeList.add(newbarcode);
                         }
                     } else {
                         // 如果范围是从 B 到 A，按逆序插入条形码
@@ -114,13 +138,13 @@ public class NewbarcodeServiceImpl extends ServiceImpl<NewbarcodeMapper, Newbarc
     /**
      * 辅助方法：将条形码及其相关信息添加到条形码列表
      *
-     * @param barcodeList 最终插入数据库的条形码列表
-     * @param barcode     当前条形码
-     * @param floor       楼层信息
-     * @param shelf       书架编号
-     * @param rownum      行号
-     * @param colnum      列号
-     * @param currentTime 当前时间戳
+     * @param barcodeList  最终插入数据库的条形码列表
+     * @param barcode      当前条形码
+     * @param floor        楼层信息
+     * @param shelf        书架编号
+     * @param rownum       行号
+     * @param colnum       列号
+     * @param currentTime  当前时间戳
      */
     private void addToBarcodeList(List<Newbarcode> barcodeList, String barcode,
                                   String floor, String shelf, String rownum, String colnum, Date currentTime) {
@@ -135,6 +159,9 @@ public class NewbarcodeServiceImpl extends ServiceImpl<NewbarcodeMapper, Newbarc
         // 将新条形码对象添加到列表中
         barcodeList.add(newbarcode);
     }
+
+
+
 
 
 //    @Override
@@ -205,7 +232,7 @@ public class NewbarcodeServiceImpl extends ServiceImpl<NewbarcodeMapper, Newbarc
         try {
             Date latestTime = newbarcodeMapper.selectMaxCreatedTime();
             // 调用 Mapper 方法获取书框书籍数据
-            List<FrameBooksVo> frameBooksData = newbarcodeMapper.selectFrameBooksData(floorName, shelfName, latestTime);
+            List<FrameBooksVo> frameBooksData = newbarcodeMapper.selectFrameBooksData(floorName, shelfName,latestTime);
             System.out.println("Fetched frameBooksData: " + frameBooksData); // 输出数据
             return frameBooksData;
         } catch (Exception e) {
@@ -215,7 +242,7 @@ public class NewbarcodeServiceImpl extends ServiceImpl<NewbarcodeMapper, Newbarc
         }
     }
 
-    //    @Override
+//    @Override
 //    public List<String> getBooksDetailsData(int floorName, String shelfName, int row, int col) {
 //        try {
 //            // 1. 查询数据库中 createdtime 的最大值（即最后一次的时间）
@@ -284,6 +311,46 @@ public class NewbarcodeServiceImpl extends ServiceImpl<NewbarcodeMapper, Newbarc
             return Collections.emptyList();
         }
     }
+
+    @Override
+    public StatusNum getTotalStatusNum() {
+        return null;
+    }
+
+    @Override
+    public List<InventoryFloorVo> inventoryByFloor(Integer floorNum) {
+        List<ShelfStatusCountDTO> shelfStatusCountDTOList = newbarcodeMapper.inventoryByFloor(floorNum);
+        List<InventoryFloorVo> floorVoList = new ArrayList<>();
+        Map<String, List<ShelfStatusCountDTO>> shelfMap = shelfStatusCountDTOList.stream()
+                .collect(Collectors.groupingBy(ShelfStatusCountDTO::getShelf));
+        Set<Map.Entry<String, List<ShelfStatusCountDTO>>> entrySet = shelfMap.entrySet();
+        entrySet.forEach(entry -> {
+            StatusNum statusNum = new StatusNum();
+            for (ShelfStatusCountDTO shelfStatusCountDTO : entry.getValue()) {
+                // 4个 if 只可能进入一个
+                if (shelfStatusCountDTO.getStatus() == InventoryStatusEnum.errorStatus.getStatus()){
+                    statusNum.setErrorStatusNum(shelfStatusCountDTO.getCount());
+                }
+                if (shelfStatusCountDTO.getStatus() == InventoryStatusEnum.matchStatus.getStatus()){
+                    statusNum.setMatchStatusNum(shelfStatusCountDTO.getCount());
+                }
+                if (shelfStatusCountDTO.getStatus() == InventoryStatusEnum.notMatchStatus.getStatus()){
+                    statusNum.setNotMatchStatusNum(shelfStatusCountDTO.getCount());
+                }
+                if (shelfStatusCountDTO.getStatus() == InventoryStatusEnum.fixedMatchStatus.getStatus()){
+                    statusNum.setFixedMatchStatusNum(shelfStatusCountDTO.getCount());
+                }
+            }
+            InventoryFloorVo inventoryFloorVo = InventoryFloorVo.builder()
+                    .shelfNum(entry.getKey())
+                    .statusNum(statusNum)
+                    .build();
+            floorVoList.add(inventoryFloorVo);
+        });
+        return floorVoList;
+
+    }
+
 
     private List<SummaryInfoVo.FloorBookInfo> getBooksByFloor() {
         // 1. 查询出数据库中 createdtime 的最大值（即最后一次的时间）
