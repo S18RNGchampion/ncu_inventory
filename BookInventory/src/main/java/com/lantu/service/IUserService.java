@@ -1,7 +1,7 @@
 package com.lantu.service;
 
-import com.lantu.domain.po.User;
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.lantu.domain.po.User;
 
 import java.util.Map;
 
@@ -14,10 +14,10 @@ import java.util.Map;
  * @since 2024-05-15
  */
 public interface IUserService extends IService<User> {
-    
+
     Map<String, Object> login(User user);
-    
+
     Map<String, Object> getUserInfo(String token);
-    
+
     void logout(String token);
 }

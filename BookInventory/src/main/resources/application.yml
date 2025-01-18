@@ -4,12 +4,12 @@ server:
 spring:
   datasource:
     username: root
-    password: password
+    password: Hjw1829669
     url: jdbc:mysql://127.0.0.1:3306/ncu_library_bookinfo?zeroDateTimeBehavior=convertToNull
   data:
     redis:
       port: 6379
-      host: localhost
+      host: Hjw1829669
 
 mybatis-plus:
   mapper-locations: classpath:mapper/*.xml

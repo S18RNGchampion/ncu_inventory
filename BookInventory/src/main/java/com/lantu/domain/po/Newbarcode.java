@@ -7,19 +7,21 @@ import com.baomidou.mybatisplus.annotation.TableId;
 import java.io.Serializable;
 import java.util.Date;
 
-import lombok.Data;
-import lombok.EqualsAndHashCode;
+import lombok.*;
 import lombok.experimental.Accessors;
 
 /**
  * <p>
- * 
+ *
  * </p>
  *
  * @author author
  * @since 2024-05-15
  */
 @Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 @EqualsAndHashCode(callSuper = false)
 @Accessors(chain = true)
 @TableName("ncu_library_bookinfo.newbarcode")
@@ -31,18 +33,17 @@ public class Newbarcode implements Serializable {
     private Integer id;
 
     private String newbarcode;
-    
+
     private int status;
-    
- 
+
     private Date createdtime;
-    
+
     private int floorname;
-    
+
     private String shelf;
-    
+
     private int rownum;
-    
+
     private int colnum;
 
 
