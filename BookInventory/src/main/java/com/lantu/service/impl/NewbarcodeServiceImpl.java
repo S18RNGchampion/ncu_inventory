@@ -439,39 +439,50 @@ public class NewbarcodeServiceImpl extends ServiceImpl<NewbarcodeMapper, Newbarc
     }
 
     public Result<List<FloorShelfStatusVo>> getFloorShelfInventoryStatus(Integer floorNum, String floorName) {
+        // 从数据库获取原始统计数据
         List<FloorShelfStatusCountPo> floorShelfStatusCountPoList = newbarcodeMapper.getFloorShelfStatusCount(floorNum, floorName);
-        List<FloorShelfStatusVo> list = new ArrayList<>();
-        FloorShelfStatusVo floorShelfStatusVo = null;
-        StatusNum statusNum = null;
-        int rownum = -1;
-        int colnum = -1;
+
+        // 使用 Map 进行动态分组
+        Map<String, FloorShelfStatusVo> groupedData = new HashMap<>();
+
         for (FloorShelfStatusCountPo po : floorShelfStatusCountPoList) {
-            if (po.getColnum() != rownum || po.getRownum() != colnum) {
-                rownum = po.getRownum();
-                colnum = po.getColnum();
-                floorShelfStatusVo = new FloorShelfStatusVo();
-                floorShelfStatusVo.setRownum(rownum);
-                floorShelfStatusVo.setColnum(colnum);
+            // 组合行列号作为唯一键
+            String key = po.getRownum() + "-" + po.getColnum();
+
+            // 如果 Map 中不存在该货架，初始化并添加
+            groupedData.putIfAbsent(key, new FloorShelfStatusVo());
+            FloorShelfStatusVo floorShelfStatusVo = groupedData.get(key);
+
+            // 设置行号和列号（只需设置一次）
+            floorShelfStatusVo.setRownum(po.getRownum());
+            floorShelfStatusVo.setColnum(po.getColnum());
+
+            // 获取状态统计对象
+            StatusNum statusNum = floorShelfStatusVo.getStatusNum();
+            if (statusNum == null) {
                 statusNum = new StatusNum();
                 floorShelfStatusVo.setStatusNum(statusNum);
-                list.add(floorShelfStatusVo);
             }
+
+            // 根据状态累加统计
             switch (po.getStatus()) {
                 case 1:
-                    statusNum.setMatchStatusNum((long) po.getCount());
+                    statusNum.setMatchStatusNum(statusNum.getMatchStatusNum() + po.getCount());
                     break;
                 case 2:
-                    statusNum.setNotMatchStatusNum((long) po.getCount());
+                    statusNum.setNotMatchStatusNum(statusNum.getNotMatchStatusNum() + po.getCount());
                     break;
                 case 3:
-                    statusNum.setFixedMatchStatusNum((long) po.getCount());
+                    statusNum.setFixedMatchStatusNum(statusNum.getFixedMatchStatusNum() + po.getCount());
                     break;
                 case 0:
-                    statusNum.setErrorStatusNum((long) po.getCount());
+                    statusNum.setErrorStatusNum(statusNum.getErrorStatusNum() + po.getCount());
                     break;
             }
         }
-        return Result.success(list);
+
+        // 将分组结果转为列表返回
+        return Result.success(new ArrayList<>(groupedData.values()));
     }
 
     @Override

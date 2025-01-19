@@ -5,7 +5,11 @@ import instance from "@/js/AxiosConfig.js";
  * @returns
  */
 async function getShelvesList(floorNum) {
-  const response = await instance.get('/inventory/getShelvesList?floorNum='+floorNum);
+  const response = await instance.get('/inventory/getShelvesList',{
+    params:{
+      floorNum:floorNum
+    }
+  });
   return response.data;
 }
 
@@ -14,7 +18,13 @@ async function getShelvesList(floorNum) {
  * @returns
  */
 async function getFloorShelfInventoryStatus(floorNum, shelfNum) {
-  const response = await instance.get('/inventory/shelf?floorNum='+floorNum+'&shelfNum='+shelfNum);
+  const response = await instance.get('/inventory/shelf',{
+    params:{
+      floorNum:floorNum,
+      shelfNum:shelfNum
+
+    }
+  });
   return response.data;
 }
 
