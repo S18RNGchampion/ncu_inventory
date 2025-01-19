@@ -11,9 +11,9 @@
       >
         <el-option
           v-for="floor in floors"
-          :key="floor.id"
-          :label="floor.name"
-          :value="floor.id"
+          :key="floor"
+          :label="`第${floor}层`"
+          :value="floor"
         />
       </el-select>
       <el-button-group>
@@ -48,42 +48,70 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import {ref, computed, onMounted} from 'vue'
 import { useRouter } from 'vue-router'
 import { ArrowUp, ArrowDown } from '@element-plus/icons-vue'
 import PageContainer from '@/components/layout/PageContainer.vue'
 import ShelfCard from '@/components/inventory/ShelfCard.vue'
+import { getInventoryFloorView, getFloors } from '@/js/api/inventoryView.js'
 
 const router = useRouter()
 const currentFloor = ref<number>(1)
 
-// 生成楼层数据
-const floors = Array.from({ length: 18 }, (_, i) => ({
-  id: i + 1,
-  name: `${i + 1}层`
-}))
+const floors = ref<number[]>([]);
 
-// 生成书架数据
-const shelves = computed(() => {
-  return Array.from({ length: 18 }, (_, i) => ({
-    id: i + 1,
-    name: `${currentFloor.value}层-${i + 1}号书架`,
-    totalBooks: 1600,
-    checkedBooks: Math.floor(Math.random() * 1600),
-    checkProgress: Math.floor(Math.random() * 100)
-  }))
+interface StatusNum {
+  matchStatusNum: number;
+  notMatchStatusNum: number;
+  fixedMatchStatusNum: number;
+  errorStatusNum: number;
+}
+
+interface ShelfViewByFloor {
+  shelfNum: number;
+  statusNum: StatusNum;
+}
+
+const shelfArray = ref<ShelfViewByFloor[]>([]);
+
+onMounted(async () => {
+    floors.value = await getFloors();
+    const floorNum = floors.value[0];
+    shelfArray.value = await getInventoryFloorView(floorNum);
 })
 
-const handleFloorChange = (floorId: number) => {
-  router.push(`/inventory/floor/${floorId}`)
-}
 
-const changeFloor = (floor: number) => {
-  if (floor >= 1 && floor <= 18) {
-    currentFloor.value = floor
-    handleFloorChange(floor)
-  }
-}
+// interface ShelfTotalView {
+//   id: number;
+//   name: string;
+//   matchNum: number;
+//   totalNum: number;
+//   matchRate: number;
+// }
+
+// 使用 computed 计算基于 shelfArray 的新数组
+const shelves = computed(() => {
+  return shelfArray.value.map(item => ({
+    id: item.shelfNum, // shelfId = shelfNum
+    name: `${currentFloor.value}层-${item.shelfNum}号书架`,
+    matchNum: item.statusNum.matchStatusNum, // matchNum = matchStatusNum
+    totalNum: item.statusNum.matchStatusNum
+      + item.statusNum.notMatchStatusNum
+      + item.statusNum.fixedMatchStatusNum
+      + item.statusNum.errorStatusNum, // totalNum = matchStatusNum + notMatchStatusNum + fixedMatchStatusNum + errorStatusNum
+    matchRate: item.statusNum.matchStatusNum /
+      (item.statusNum.matchStatusNum
+      + item.statusNum.notMatchStatusNum
+      + item.statusNum.fixedMatchStatusNum
+      + item.statusNum.errorStatusNum) // matchRate = matchStatusNum / totalNum
+  }));
+});
+
+// 处理楼层变化的函数
+// 处理楼层变化
+const handleFloorChange = async (floorNum:number) => {
+  shelfArray.value = await getInventoryFloorView(floorNum); // 获取并设置楼层数据
+};
 
 const goToShelf = (shelfId: number) => {
   router.push(`/inventory/shelf/${currentFloor.value}/${shelfId}`)
