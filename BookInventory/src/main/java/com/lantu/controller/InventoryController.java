@@ -2,6 +2,7 @@ package com.lantu.controller;
 
 import com.lantu.common.vo.Result;
 import com.lantu.domain.vo.BookInfoResp;
+import com.lantu.domain.vo.FloorShelfStatusVo;
 import com.lantu.domain.vo.InventoryFloorVo;
 import com.lantu.domain.vo.SheltInfoVo;
 import com.lantu.service.IBookinfoService;
@@ -47,10 +48,8 @@ public class InventoryController {
     }
 
     /**
-     * 获得该层楼所有书架名
-     *
+     * 获取该楼层所有书架
      * @param floorNum
-     * @param shelf
      * @return
      */
     @GetMapping("/getShelvesList")
@@ -59,14 +58,14 @@ public class InventoryController {
     }
 
     /**
-     *
+     * 书架盘点接口
      * @param floorNum
-     * @param shelf
+     * @param shelfNum
      * @return
      */
     @GetMapping("/shelf")
-    public Result inventoryByShelf(@RequestParam Integer floorNum, @RequestParam String shelf) {
-        return null;
+    public Result<List<FloorShelfStatusVo>> inventoryByShelf(@RequestParam Integer floorNum, @RequestParam String shelfNum) {
+        return newBarcodeService.getFloorShelfInventoryStatus(floorNum,shelfNum);
     }
 
 }

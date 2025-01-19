@@ -7,6 +7,7 @@ import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.lantu.common.vo.Result;
 import com.lantu.domain.po.*;
+import com.lantu.domain.vo.FloorShelfStatusVo;
 import com.lantu.domain.vo.StatusNum;
 import com.lantu.domain.vo.TotalViewVo;
 import com.lantu.enums.InventoryStatusEnum;
@@ -65,10 +66,10 @@ class VueAdminTemplateApplicationTests {
 
     @Test
     public void tes() {
-        List<String> shelfByFloorNum = newbarcodeMapper.getShelfByFloorNum(14);
-
-        System.out.println("safd");
     }
 
 
 }
+
+
+

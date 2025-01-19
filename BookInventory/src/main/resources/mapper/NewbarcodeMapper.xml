@@ -51,7 +51,7 @@
 <!--    </select>-->
     <select id="selectFloorInventoryStatus" resultMap="FloorStatusCountPoMap">
         select floorname, status, count(*) as status_count
-        from newbarcode
+        from newbarcode where floorname is not null and status is not null
         group by floorname, status
         order by floorname, status
     </select>

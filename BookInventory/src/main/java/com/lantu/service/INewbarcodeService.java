@@ -43,8 +43,21 @@ public interface INewbarcodeService extends IService<Newbarcode> {
      */
     Map<Integer, StatusNum> statisticFloorStatus();
 
-
+    /**
+     * 获得该层楼所有书架名
+     * @param floorNum
+     * @return
+     */
     Result<List<String>> getShelvesList(Integer floorNum);
+
+    /**
+     * 获得该层楼 书架的 盘点状况
+     * @param floorNum
+     * @param floorName
+     * @return
+     */
+    Result<List<FloorShelfStatusVo>> getFloorShelfInventoryStatus(Integer floorNum,String floorName);
+
 
     List<Integer> getFloors();
 
