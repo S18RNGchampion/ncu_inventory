@@ -56,9 +56,10 @@ import ShelfCard from '@/components/inventory/ShelfCard.vue'
 import { getInventoryFloorView, getFloors } from '@/js/api/inventoryView.js'
 
 const router = useRouter()
-const currentFloor = ref<number>(1)
+
 
 const floors = ref<number[]>([]);
+const currentFloor = ref<number>(0)
 
 interface StatusNum {
   matchStatusNum: number;
@@ -76,6 +77,7 @@ const shelfArray = ref<ShelfViewByFloor[]>([]);
 
 onMounted(async () => {
     floors.value = await getFloors();
+    currentFloor.value=floors.value[0];
     const floorNum = floors.value[0];
     shelfArray.value = await getInventoryFloorView(floorNum);
 })

@@ -125,7 +125,7 @@ export interface BookInfoResp {
 }
 
 const frameInfo = computed(() => {
-  return `${floorId}层-${shelfId}号书架-${shelfId}号框`
+  return `${floorId}层-${shelfId}号书架-第${rowNum}行-第${colNum}列`
 })
 
 const dialogVisible = ref(false)
