@@ -74,21 +74,10 @@ interface ShelfViewByFloor {
 
 const shelfArray = ref<ShelfViewByFloor[]>([]);
 
-// 添加 onMounted 钩子
 onMounted(async () => {
-  try {
     floors.value = await getFloors();
-
-    if (floors.value.length === 0) {
-      console.error("没有获取到楼层数据");
-      return;
-    }
-
-    const floorNum = floors.value[0]; // 传入你想请求的楼层编号
+    const floorNum = floors.value[0];
     shelfArray.value = await getInventoryFloorView(floorNum);
-  } catch (error) {
-    console.error("请求楼层或库存数据失败:", error);
-  }
 })
 
 
@@ -123,13 +112,6 @@ const shelves = computed(() => {
 const handleFloorChange = async (floorNum:number) => {
   shelfArray.value = await getInventoryFloorView(floorNum); // 获取并设置楼层数据
 };
-
-const changeFloor = (floor: number) => {
-  if (floor >= 1 && floor <= 18) {
-    currentFloor.value = floor
-    handleFloorChange(floor)
-  }
-}
 
 const goToShelf = (shelfId: number) => {
   router.push(`/inventory/shelf/${currentFloor.value}/${shelfId}`)

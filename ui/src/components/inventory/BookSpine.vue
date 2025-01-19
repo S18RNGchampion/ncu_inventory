@@ -1,19 +1,40 @@
 <template>
-  <div class="book" :class="book.status" @click="$emit('click')">
+  <div class="book" :class="statusClass" @click="$emit('click')" :title="statusText">
     <div class="book-spine">{{ book.title }}</div>
   </div>
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue'
+
 interface Book {
   id: number
   title: string
-  status: 'exists' | 'maybe' | 'notExists'
+  status: number
 }
 
-defineProps<{
+const props = defineProps<{
   book: Book
 }>()
+
+// 计算状态对应的类名
+const statusClass = computed(() => ({
+  'status-match': props.book.status === 1,
+  'status-not-match': props.book.status === 2,
+  'status-fixed-match': props.book.status === 3,
+  'status-error': props.book.status === 0
+}))
+
+// 计算状态对应的文字说明
+const statusText = computed(() => {
+  const statusMap = {
+    0: '识别失败',
+    1: '匹配',
+    2: '未匹配',
+    3: '待确定'
+  }
+  return statusMap[props.book.status as keyof typeof statusMap]
+})
 </script>
 
 <style scoped>
@@ -34,7 +55,6 @@ defineProps<{
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  background: #fff;
   border: 1px solid #dcdfe6;
 }
 
@@ -42,18 +62,24 @@ defineProps<{
   transform: translateY(-5px);
 }
 
-.book.exists .book-spine {
+/* 状态颜色 */
+.status-match .book-spine {
   background: #f0f9eb;
   border-color: #67c23a;
 }
 
-.book.maybe .book-spine {
+.status-not-match .book-spine {
+  background: #fef0f0;
+  border-color: #f56c6c;
+}
+
+.status-fixed-match .book-spine {
   background: #fdf6ec;
   border-color: #e6a23c;
 }
 
-.book.notExists .book-spine {
-  background: #fef0f0;
-  border-color: #f56c6c;
+.status-error .book-spine {
+  background: #ffffff;
+  border-color: #dcdfe6;
 }
 </style>

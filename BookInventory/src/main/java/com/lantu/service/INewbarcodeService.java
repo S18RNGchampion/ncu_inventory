@@ -37,7 +37,6 @@ public interface INewbarcodeService extends IService<Newbarcode> {
      */
     StatusNum getTotalStatusNum();
 
-
     /**
      * 统计每个楼层盘点书不同状态的数量
      */
@@ -69,5 +68,12 @@ public interface INewbarcodeService extends IService<Newbarcode> {
      * @param colNum
      * @return
      */
-    List<BookInfoResp> inventoryByBookFrame(Integer floorNum, String shelfNum, Integer rowNum, Integer colNum);
+    List<BooksVo> inventoryByBookFrame(Integer floorNum, String shelfNum, Integer rowNum, Integer colNum);
+
+    /**
+     * 按NewBarcode返回对应的书籍详情信息
+     * @param newBarcodeId
+     * @return
+     */
+    BookInfoResp getBookDetailByNewBarcode(Integer newBarcodeId);
 }

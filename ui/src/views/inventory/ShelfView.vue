@@ -158,9 +158,8 @@ const changeShelf = (newShelfId: string) => {
   }
 }
 
-const goToBooks = (level: number, frame: number) => {
-  const frameId = `${level}-${frame}`
-  router.push(`/inventory/books/${floorId}/${currentShelf.value}/${frameId}`)
+const goToBooks = (rowNum: number, colNum: number) => {
+  router.push(`/inventory/books/${floorId}/${currentShelf.value}/${rowNum}/${colNum}`)
 }
 </script>
 

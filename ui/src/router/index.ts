@@ -23,7 +23,7 @@ const router = createRouter({
       },
       children: [
         {
-          path: 'floor/:floorId',
+          path: 'floor',
           name: 'inventoryFloor',
           component: () => import('@/views/inventory/FloorView.vue'),
           meta: {
@@ -40,7 +40,7 @@ const router = createRouter({
           }
         },
         {
-          path: 'books/:floorId/:shelfId/:frameId',
+          path: 'books/:floorId/:shelfId/:rowNum/:colNum',
           name: 'inventoryBooks',
           component: () => import('@/views/inventory/BooksView.vue'),
           meta: {

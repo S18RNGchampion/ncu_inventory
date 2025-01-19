@@ -16,6 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
+import java.util.concurrent.*;
 import java.util.stream.Collectors;
 
 /**
@@ -34,6 +35,18 @@ public class NewbarcodeServiceImpl extends ServiceImpl<NewbarcodeMapper, Newbarc
 
     @Autowired
     private BookinfoMapper bookinfoMapper;
+
+    /**
+     * 属于 IO 密集型任务
+     */
+    private final ExecutorService executorService = new ThreadPoolExecutor(
+            Runtime.getRuntime().availableProcessors() << 1,
+            Runtime.getRuntime().availableProcessors() << 2,
+            60,
+            TimeUnit.SECONDS,
+            new SynchronousQueue<>(),
+            new ThreadPoolExecutor.CallerRunsPolicy()
+    );
 
     public void processFileContent(List<String> newbarcodes) {
         // 当前时间，用于设置条形码的创建时间
@@ -468,19 +481,41 @@ public class NewbarcodeServiceImpl extends ServiceImpl<NewbarcodeMapper, Newbarc
     }
 
     @Override
-    public List<BookInfoResp> inventoryByBookFrame(Integer floorNum, String shelfNum, Integer rowNum, Integer colNum) {
-        List<Bookinfo> bookInfoList = newbarcodeMapper.inventoryByBookFrame(floorNum, shelfNum, rowNum, colNum);
-        List<BookInfoResp> bookInfoRespList = bookInfoList.stream()
-                .map(each -> BeanUtil.toBean(each, BookInfoResp.class))
+    public List<BooksVo> inventoryByBookFrame(Integer floorNum, String shelfNum, Integer rowNum, Integer colNum) {
+        List<Newbarcode> bookInfoList = newbarcodeMapper.inventoryByBookFrame(floorNum, shelfNum, rowNum, colNum);
+        List<BooksVo> bookInfoRespList = bookInfoList.stream()
+                .map(each -> BeanUtil.toBean(each, BooksVo.class))
                 .collect(Collectors.toList());
-        bookInfoRespList.forEach(each -> {
-            LambdaQueryWrapper<Bookinfo> queryWrapper = Wrappers.lambdaQuery(Bookinfo.class)
-                    .eq(Bookinfo::getNewbarcode, each.getNewbarcode());
-            Bookinfo selectOne = bookinfoMapper.selectOne(queryWrapper);
-            if (selectOne != null){
-                each.setBookInfo(selectOne);
-            }
+
+        List<Future<Void>> futures = new ArrayList<>();
+        bookInfoRespList.forEach(e -> {
+            Future<Void> future = executorService.submit(() -> {
+                String bookName = bookinfoMapper.getNameBynewBarcode(e.getNewbarcode());
+                e.setName(bookName);
+                return null;
+            });
+            futures.add(future);
         });
+        for (Future<Void> future : futures) {
+            try {
+                future.get();
+            } catch (InterruptedException | ExecutionException e) {
+                throw new RuntimeException("获取图书名异常", e);
+            }
+        }
         return bookInfoRespList;
+    }
+
+    @Override
+    public BookInfoResp getBookDetailByNewBarcode(Integer newBarcodeId) {
+        LambdaQueryWrapper<Newbarcode> newbarcodeLambdaQueryWrapper = Wrappers.lambdaQuery(Newbarcode.class)
+                .eq(Newbarcode::getId, newBarcodeId);
+        Newbarcode newbarcode = newbarcodeMapper.selectOne(newbarcodeLambdaQueryWrapper);
+        BookInfoResp bookInfoResp = BeanUtil.toBean(newbarcode, BookInfoResp.class);
+        LambdaQueryWrapper<Bookinfo> queryWrapper = Wrappers.lambdaQuery(Bookinfo.class)
+                .eq(Bookinfo::getNewbarcode, newbarcode.getNewbarcode());
+        Bookinfo bookinfo = bookinfoMapper.selectOne(queryWrapper);
+        bookInfoResp.setBookInfo(bookinfo);
+        return bookInfoResp;
     }
 }
