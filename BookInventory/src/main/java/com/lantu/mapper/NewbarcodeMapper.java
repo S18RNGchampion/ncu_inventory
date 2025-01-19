@@ -2,6 +2,7 @@ package com.lantu.mapper;
 
 import com.lantu.domain.po.FloorInventoryStatusCountPo;
 
+import com.lantu.domain.po.FloorShelfStatusCountPo;
 import com.lantu.domain.po.Newbarcode;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.lantu.domain.po.ShelfStatusCountDTO;
@@ -17,7 +18,7 @@ import java.util.List;
 
 /**
  * <p>
- *  Mapper 接口
+ * Mapper 接口
  * </p>
  *
  * @author author
@@ -32,7 +33,7 @@ public interface NewbarcodeMapper extends BaseMapper<Newbarcode> {
     Date selectMaxCreatedTime();
 
     @Select("SELECT COUNT(*) FROM ncu_library_bookinfo.newbarcode WHERE createdtime = #{latestTime}")
-    Integer  selectTotalBooksByTime(Date latestTime);
+    Integer selectTotalBooksByTime(Date latestTime);
 
     @Select("SELECT floorname AS floorId, COUNT(*) AS bookCount " +
             "FROM newbarcode " +
@@ -51,11 +52,12 @@ public interface NewbarcodeMapper extends BaseMapper<Newbarcode> {
 
     /**
      * 根据楼层名称和书架名称查询书框书籍数据
+     *
      * @param floorName 楼层名称
      * @param shelfName 书架名称
      * @return 书框书籍数据列表
      */
-    List<FrameBooksVo> selectFrameBooksData(@Param("floorName") int floorName, @Param("shelfName") String shelfName,@Param("latestTime") Date latestTime);
+    List<FrameBooksVo> selectFrameBooksData(@Param("floorName") int floorName, @Param("shelfName") String shelfName, @Param("latestTime") Date latestTime);
 
 
     @Select("SELECT newbarcode FROM ncu_library_bookinfo.newbarcode " +
@@ -70,6 +72,7 @@ public interface NewbarcodeMapper extends BaseMapper<Newbarcode> {
                                                     @Param("row") int row,
                                                     @Param("col") int col,
                                                     @Param("latestTime") Date latestTime);
+
     @Select("select shelf, status, count(*) count from newbarcode where floorname = #{floorNum} and shelf is not null and status is not null group by shelf, status")
     List<ShelfStatusCountDTO> inventoryByFloor(@Param("floorNum") Integer floorNum);
 
@@ -77,4 +80,7 @@ public interface NewbarcodeMapper extends BaseMapper<Newbarcode> {
 
     @Select("select shelf from newbarcode where floorname=#{floorNum} and shelf is not null and status is not null group by shelf")
     List<String> getShelvesListByFloorNum(@Param("floorNum") Integer floorNum);
+
+    @Select("select rownum,colnum,status, count(*) as 'count' from newbarcode where floorname=#{floorNum} and shelf=#{shelfName} and status is not null group by rownum,colnum,status")
+    List<FloorShelfStatusCountPo> getFloorShelfStatusCount(Integer floorNum, String shelfName);
 }
