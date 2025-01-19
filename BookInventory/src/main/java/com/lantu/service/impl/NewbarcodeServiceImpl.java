@@ -4,10 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.lantu.common.vo.Result;
-import com.lantu.domain.po.Bookinfo;
-import com.lantu.domain.po.FloorInventoryStatusCountPo;
-import com.lantu.domain.po.Newbarcode;
-import com.lantu.domain.po.ShelfStatusCountDTO;
+import com.lantu.domain.po.*;
 import com.lantu.domain.vo.*;
 import com.lantu.enums.InventoryStatusEnum;
 import com.lantu.mapper.BookinfoMapper;
@@ -394,8 +391,8 @@ public class NewbarcodeServiceImpl extends ServiceImpl<NewbarcodeMapper, Newbarc
     public Map<Integer, StatusNum> statisticFloorStatus() {
         List<FloorInventoryStatusCountPo> floorStatusCountPos = newbarcodeMapper.selectFloorInventoryStatus();
         Map<Integer, StatusNum> statusNumMap = new HashMap<>();
-        List<FloorInventoryStatusCountPo> filterFloorStatusCountPos = floorStatusCountPos.stream().filter(floorStatusCountPo -> floorStatusCountPo.getStatus() != null && floorStatusCountPo.getFloorname() != null).collect(Collectors.toList());
-        for (FloorInventoryStatusCountPo floorStatusCountPo : filterFloorStatusCountPos) {
+
+        for (FloorInventoryStatusCountPo floorStatusCountPo : floorStatusCountPos) {
             Integer floorname = floorStatusCountPo.getFloorname();
             StatusNum statusNum = statusNumMap.get(floorname);
             if (statusNum == null) {
@@ -426,5 +423,41 @@ public class NewbarcodeServiceImpl extends ServiceImpl<NewbarcodeMapper, Newbarc
     public Result<List<String>> getShelvesList(Integer floorNum) {
         List<String> shelfByFloorNum = newbarcodeMapper.getShelvesListByFloorNum(floorNum);
         return Result.success(shelfByFloorNum);
+    }
+
+    public Result<List<FloorShelfStatusVo>> getFloorShelfInventoryStatus(Integer floorNum, String floorName) {
+        List<FloorShelfStatusCountPo> floorShelfStatusCountPoList = newbarcodeMapper.getFloorShelfStatusCount(floorNum, floorName);
+        List<FloorShelfStatusVo> list = new ArrayList<>();
+        FloorShelfStatusVo floorShelfStatusVo = null;
+        StatusNum statusNum = null;
+        int rownum = -1;
+        int colnum = -1;
+        for (FloorShelfStatusCountPo po : floorShelfStatusCountPoList) {
+            if (po.getColnum() != rownum || po.getRownum() != colnum) {
+                rownum = po.getRownum();
+                colnum = po.getColnum();
+                floorShelfStatusVo = new FloorShelfStatusVo();
+                floorShelfStatusVo.setRownum(rownum);
+                floorShelfStatusVo.setColnum(colnum);
+                statusNum = new StatusNum();
+                floorShelfStatusVo.setStatusNum(statusNum);
+                list.add(floorShelfStatusVo);
+            }
+            switch (po.getStatus()) {
+                case 1:
+                    statusNum.setMatchStatusNum((long) po.getCount());
+                    break;
+                case 2:
+                    statusNum.setNotMatchStatusNum((long) po.getCount());
+                    break;
+                case 3:
+                    statusNum.setFixedMatchStatusNum((long) po.getCount());
+                    break;
+                case 0:
+                    statusNum.setErrorStatusNum((long) po.getCount());
+                    break;
+            }
+        }
+        return Result.success(list);
     }
 }
