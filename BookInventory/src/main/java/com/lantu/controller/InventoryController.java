@@ -1,11 +1,13 @@
 package com.lantu.controller;
 
 import com.lantu.common.vo.Result;
+import com.lantu.domain.vo.BookInfoResp;
 import com.lantu.domain.vo.InventoryFloorVo;
 import com.lantu.domain.vo.SheltInfoVo;
 import com.lantu.service.IBookinfoService;
 import com.lantu.service.INewbarcodeService;
 import lombok.RequiredArgsConstructor;
+import org.apache.ibatis.annotations.Param;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -25,6 +27,25 @@ public class InventoryController {
         return Result.success(list);
     }
 
+    @GetMapping("/bookFrame")
+    public Result inventoryByBookFrame(@RequestParam Integer floorNum,
+                                       @RequestParam String shelfNum,
+                                       @RequestParam Integer rowNum,
+                                       @RequestParam Integer colNum) {
+        List<BookInfoResp> list = newBarcodeService.inventoryByBookFrame(floorNum, shelfNum, rowNum, colNum);
+        return Result.success(list);
+    }
+
+    /**
+     * 获得所有存在的楼层
+     * @return
+     */
+    @GetMapping("/floors")
+    public Result getFloors() {
+        List<Integer> list = newBarcodeService.getFloors();
+        return Result.success(list);
+    }
+
     /**
      * 获得该层楼所有书架名
      *
@@ -36,7 +57,6 @@ public class InventoryController {
     public Result<List<String>> getShelvesList(@RequestParam Integer floorNum) {
         return newBarcodeService.getShelvesList(floorNum);
     }
-
 
     /**
      *

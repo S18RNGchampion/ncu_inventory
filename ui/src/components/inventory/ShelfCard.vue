@@ -6,53 +6,35 @@
       </div>
     </template>
     <div class="shelf-status">
-      <el-progress :percentage="shelf.checkProgress" />
-      <div class="shelf-stats">
-        <span>总数：{{ shelf.totalBooks }}</span>
-        <span>已盘：{{ shelf.checkedBooks }}</span>
+      <!-- 保留两位小数 -->
+      <el-progress :percentage="formattedRate" />
+      <div class="shelf-stats" style="display: flex; justify-content: space-between;">
+        <span>匹配数：{{ shelf.matchNum }}</span>
+        <span>总数量：{{ shelf.totalNum }}</span>
       </div>
     </div>
   </el-card>
 </template>
 
-<script setup lang="ts">
-interface ShelfInfo {
-  id: number
-  name: string
-  totalBooks: number
-  checkedBooks: number
-  checkProgress: number
-}
+<script>
+import { computed } from 'vue';
 
-defineProps<{
-  shelf: ShelfInfo
-}>()
+export default {
+  props: {
+    shelf: {
+      type: Object,
+      required: true,
+    },
+  },
+  setup(props) {
+    // 格式化 matchRate 为保留两位小数的百分比
+    const formattedRate = computed(() => {
+      return (parseFloat(props.shelf.matchRate) * 100).toFixed(2);
+    });
+
+    return {
+      formattedRate,
+    };
+  },
+};
 </script>
-
-<style scoped>
-.shelf-card {
-  cursor: pointer;
-  transition: all 0.3s;
-}
-
-.shelf-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 2px 12px 0 rgba(0,0,0,.1);
-}
-
-.shelf-header {
-  font-weight: bold;
-}
-
-.shelf-status {
-  margin-top: 10px;
-}
-
-.shelf-stats {
-  display: flex;
-  justify-content: space-between;
-  margin-top: 10px;
-  color: #666;
-  font-size: 14px;
-}
-</style>

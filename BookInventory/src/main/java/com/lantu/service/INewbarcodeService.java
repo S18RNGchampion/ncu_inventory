@@ -45,4 +45,16 @@ public interface INewbarcodeService extends IService<Newbarcode> {
 
 
     Result<List<String>> getShelvesList(Integer floorNum);
+
+    List<Integer> getFloors();
+
+    /**
+     * 按条形码从左到右的顺序排列书框的书籍信息
+     * @param floorNum
+     * @param shelfNum
+     * @param rowNum
+     * @param colNum
+     * @return
+     */
+    List<BookInfoResp> inventoryByBookFrame(Integer floorNum, String shelfNum, Integer rowNum, Integer colNum);
 }

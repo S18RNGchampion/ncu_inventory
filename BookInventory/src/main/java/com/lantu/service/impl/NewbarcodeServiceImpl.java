@@ -1,5 +1,6 @@
 package com.lantu.service.impl;
 
+import cn.hutool.core.bean.BeanUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
@@ -367,7 +368,6 @@ public class NewbarcodeServiceImpl extends ServiceImpl<NewbarcodeMapper, Newbarc
         }
     }
 
-
     @Override
     public StatusNum getTotalStatusNum() {
         LambdaQueryWrapper<Newbarcode> matchWrapper = Wrappers.lambdaQuery();
@@ -426,5 +426,28 @@ public class NewbarcodeServiceImpl extends ServiceImpl<NewbarcodeMapper, Newbarc
     public Result<List<String>> getShelvesList(Integer floorNum) {
         List<String> shelfByFloorNum = newbarcodeMapper.getShelvesListByFloorNum(floorNum);
         return Result.success(shelfByFloorNum);
+    }
+
+    @Override
+    public List<Integer> getFloors() {
+        List<Integer> floors =  newbarcodeMapper.getFloors();
+        return floors;
+    }
+
+    @Override
+    public List<BookInfoResp> inventoryByBookFrame(Integer floorNum, String shelfNum, Integer rowNum, Integer colNum) {
+        List<Bookinfo> bookInfoList = newbarcodeMapper.inventoryByBookFrame(floorNum, shelfNum, rowNum, colNum);
+        List<BookInfoResp> bookInfoRespList = bookInfoList.stream()
+                .map(each -> BeanUtil.toBean(each, BookInfoResp.class))
+                .collect(Collectors.toList());
+        bookInfoRespList.forEach(each -> {
+            LambdaQueryWrapper<Bookinfo> queryWrapper = Wrappers.lambdaQuery(Bookinfo.class)
+                    .eq(Bookinfo::getNewbarcode, each.getNewbarcode());
+            Bookinfo selectOne = bookinfoMapper.selectOne(queryWrapper);
+            if (selectOne != null){
+                each.setBookInfo(selectOne);
+            }
+        });
+        return bookInfoRespList;
     }
 }

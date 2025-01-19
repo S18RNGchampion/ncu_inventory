@@ -1,5 +1,6 @@
 package com.lantu.mapper;
 
+import com.lantu.domain.po.Bookinfo;
 import com.lantu.domain.po.FloorInventoryStatusCountPo;
 
 import com.lantu.domain.po.Newbarcode;
@@ -77,4 +78,10 @@ public interface NewbarcodeMapper extends BaseMapper<Newbarcode> {
 
     @Select("select shelf from newbarcode where floorname=#{floorNum} and shelf is not null and status is not null group by shelf")
     List<String> getShelvesListByFloorNum(@Param("floorNum") Integer floorNum);
+
+    @Select("select distinct floorname from newbarcode where floorname is not null order by floorname asc;")
+    List<Integer> getFloors();
+
+    @Select("select * from newbarcode where floorname = #{floorNum} and shelf = #{shelfNum} and rownum = #{rowNum} and colnum = #{colNum} order by id asc;")
+    List<Bookinfo> inventoryByBookFrame(Integer floorNum, String shelfNum, Integer rowNum, Integer colNum);
 }
