@@ -69,8 +69,8 @@ const statusText = computed(() => {
 }
 
 .status-not-match .book-spine {
-  background: #fef0f0;
-  border-color: #f56c6c;
+  background: #ffffff;
+  border-color: #dcdfe6;
 }
 
 .status-fixed-match .book-spine {
@@ -79,7 +79,7 @@ const statusText = computed(() => {
 }
 
 .status-error .book-spine {
-  background: #ffffff;
-  border-color: #dcdfe6;
+  background: #fef0f0;
+  border-color: #f56c6c;
 }
 </style>

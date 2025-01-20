@@ -21,8 +21,8 @@ public class VueAdminTemplateApplication {
     public CommandLineRunner commandLineRunner(ApplicationContext ctx) {
         return args -> {
             FileWatcherService watcherService = ctx.getBean(FileWatcherService.class);
-             // watcherService.setDirectoryPath("C:\\Users\\XuShiPing\\Desktop\\test");
-            watcherService.setDirectoryPath("C:\\Users\\86182\\Desktop\\newBarcode");
+              watcherService.setDirectoryPath("C:\\Users\\XuShiPing\\Desktop\\test");
+//            watcherService.setDirectoryPath("C:\\Users\\86182\\Desktop\\newBarcode");
             Executors.newSingleThreadExecutor().execute(watcherService::start);
         };
     }
