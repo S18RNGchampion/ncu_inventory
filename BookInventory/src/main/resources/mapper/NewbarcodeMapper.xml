@@ -9,11 +9,11 @@
     </resultMap>
 
     <insert id="batchInsertNewbarcodes" parameterType="java.util.List">
-        INSERT INTO newbarcode (newbarcode, createdtime, status, floorname, shelf, rownum, colnum)
+        INSERT INTO newbarcode (newbarcode, createdtime, status, floorname, shelf, rownum, colnum,sequence)
         VALUES
         <foreach collection="barcodeList" item="newbarcode" separator=",">
             (#{newbarcode.newbarcode}, #{newbarcode.createdtime}, #{newbarcode.status},
-            #{newbarcode.floorname}, #{newbarcode.shelf}, #{newbarcode.rownum}, #{newbarcode.colnum})
+            #{newbarcode.floorname}, #{newbarcode.shelf}, #{newbarcode.rownum}, #{newbarcode.colnum},#{newbarcode.sequence})
         </foreach>
     </insert>
 

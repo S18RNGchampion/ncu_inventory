@@ -88,6 +88,6 @@ public interface NewbarcodeMapper extends BaseMapper<Newbarcode> {
     @Select("select distinct floorname from newbarcode where floorname is not null order by floorname asc;")
     List<Integer> getFloors();
 
-    @Select("select * from newbarcode where floorname = #{floorNum} and shelf = #{shelfNum} and rownum = #{rowNum} and colnum = #{colNum} order by id asc;")
+    @Select("select * from newbarcode where floorname = #{floorNum} and shelf = #{shelfNum} and rownum = #{rowNum} and colnum = #{colNum} order by sequence asc;")
     List<Newbarcode> inventoryByBookFrame(Integer floorNum, String shelfNum, Integer rowNum, Integer colNum);
 }
