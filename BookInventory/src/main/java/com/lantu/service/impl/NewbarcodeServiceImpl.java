@@ -3,6 +3,7 @@ package com.lantu.service.impl;
 import cn.hutool.core.bean.BeanUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.lantu.common.vo.Result;
 import com.lantu.domain.po.*;
@@ -85,38 +86,24 @@ public class NewbarcodeServiceImpl extends ServiceImpl<NewbarcodeMapper, Newbarc
                     endChar = currentChar;   // 设置范围的结束字符
                     inRange = false;         // 标记退出范围
 
+                    // 清空该书框内以前的所有条形码信息
+                    LambdaQueryWrapper<Newbarcode> lambdaQueryWrapper = Wrappers.lambdaQuery(Newbarcode.class)
+                            .eq(Newbarcode::getFloorname, Integer.parseInt(floor))
+                            .eq(Newbarcode::getShelf, shelf)
+                            .eq(Newbarcode::getRownum, rownum)
+                            .eq(Newbarcode::getColnum, colnum);
+                    newbarcodeMapper.delete(lambdaQueryWrapper);
+
                     // 根据范围的起止字符决定条形码插入顺序
                     if (startChar < endChar) {
                         // 如果范围是从 A 到 B，按原顺序插入条形码
                         for (String barcode : tempBarcodes) {
-                            Integer status;
-                            if (barcode.contains("error")) {
-                                status = InventoryStatusEnum.errorStatus.getStatus();
-                            } else {
-                                LambdaQueryWrapper<Bookinfo> queryWrapper = Wrappers.lambdaQuery(Bookinfo.class)
-                                        .eq(Bookinfo::getNewbarcode, barcode);
-                                Bookinfo selectOne = bookinfoMapper.selectOne(queryWrapper);
-                                if (selectOne != null) {
-                                    status = InventoryStatusEnum.matchStatus.getStatus();
-                                } else {
-                                    status = InventoryStatusEnum.notMatchStatus.getStatus();
-                                }
-                            }
-                            Newbarcode newbarcode = Newbarcode.builder()
-                                    .newbarcode(barcode)
-                                    .status(status)
-                                    .floorname(Integer.parseInt(floor))
-                                    .shelf(shelf)
-                                    .rownum(Integer.parseInt(rownum))
-                                    .colnum(Integer.parseInt(colnum))
-                                    .createdtime(currentTime)
-                                    .build();
-                            barcodeList.add(newbarcode);
+                            insertOrUpdateNewBarcode(barcodeList,barcode,floor,shelf,rownum,colnum,currentTime);
                         }
                     } else {
                         // 如果范围是从 B 到 A，按逆序插入条形码
                         for (int i = tempBarcodes.size() - 1; i >= 0; i--) {
-                            addToBarcodeList(barcodeList, tempBarcodes.get(i), floor, shelf, rownum, colnum, currentTime);
+                            insertOrUpdateNewBarcode(barcodeList,tempBarcodes.get(i),floor,shelf,rownum,colnum,currentTime);
                         }
                     }
                 }
@@ -134,18 +121,91 @@ public class NewbarcodeServiceImpl extends ServiceImpl<NewbarcodeMapper, Newbarc
             if (startChar > endChar) {
                 // 按顺序插入剩余条形码
                 for (String barcode : tempBarcodes) {
-                    addToBarcodeList(barcodeList, barcode, floor, shelf, rownum, colnum, currentTime);
+                    insertOrUpdateNewBarcode(barcodeList,barcode,floor,shelf,rownum,colnum,currentTime);
                 }
             } else {
                 // 按逆序插入剩余条形码
                 for (int i = tempBarcodes.size() - 1; i >= 0; i--) {
-                    addToBarcodeList(barcodeList, tempBarcodes.get(i), floor, shelf, rownum, colnum, currentTime);
+                    insertOrUpdateNewBarcode(barcodeList,tempBarcodes.get(i),floor,shelf,rownum,colnum,currentTime);
                 }
             }
         }
 
         // 批量将所有条形码插入数据库
         newbarcodeMapper.batchInsertNewbarcodes(barcodeList);
+    }
+
+    /**
+     * 处理每一个barcode
+     * 如果该barcode已经存在，则更新状态和书架位置信息
+     * 如果不存在则加入插入列表，后续批量插入
+     * @param barcodeList
+     * @param barcode
+     * @param floor
+     * @param shelf
+     * @param rownum
+     * @param colnum
+     * @param currentTime
+     */
+    private void insertOrUpdateNewBarcode(List<Newbarcode> barcodeList,
+                                          String barcode,
+                                          String floor,
+                                          String shelf,
+                                          String rownum,
+                                          String colnum,
+                                          Date currentTime) {
+        // 确定状态
+        Integer status;
+        if (barcode.contains("error")) {
+            // 识别错误状态直接插入
+            status = InventoryStatusEnum.errorStatus.getStatus();
+            Newbarcode newbarcode = Newbarcode.builder()
+                    .newbarcode(barcode)
+                    .status(status)
+                    .floorname(Integer.parseInt(floor))
+                    .shelf(shelf)
+                    .rownum(Integer.parseInt(rownum))
+                    .colnum(Integer.parseInt(colnum))
+                    .createdtime(currentTime)
+                    .build();
+            newbarcodeMapper.insert(newbarcode);
+            return;
+        } else {
+            LambdaQueryWrapper<Bookinfo> queryWrapper = Wrappers.lambdaQuery(Bookinfo.class)
+                    .eq(Bookinfo::getNewbarcode, barcode);
+            Bookinfo selectOne = bookinfoMapper.selectOne(queryWrapper);
+            if (selectOne != null) {
+                status = InventoryStatusEnum.matchStatus.getStatus();
+            } else {
+                status = InventoryStatusEnum.notMatchStatus.getStatus();
+            }
+        }
+        LambdaQueryWrapper<Newbarcode> newbarcodeLambdaQueryWrapper = Wrappers.lambdaQuery(Newbarcode.class)
+                .eq(Newbarcode::getNewbarcode, barcode);
+        Newbarcode one = newbarcodeMapper.selectOne(newbarcodeLambdaQueryWrapper);
+        if (one != null){
+            // 如果条形码重复
+            LambdaUpdateWrapper<Newbarcode> newbarcodeLambdaUpdateWrapper = Wrappers.lambdaUpdate(Newbarcode.class)
+                    .eq(Newbarcode::getNewbarcode, barcode)
+                    .set(Newbarcode::getStatus, status)
+                    .set(Newbarcode::getFloorname, Integer.parseInt(floor))
+                    .set(Newbarcode::getShelf, shelf)
+                    .set(Newbarcode::getRownum, Integer.parseInt(rownum))
+                    .set(Newbarcode::getColnum, Integer.parseInt(colnum))
+                    .set(Newbarcode::getCreatedtime, currentTime);
+            newbarcodeMapper.update(null, newbarcodeLambdaUpdateWrapper);
+        }else {
+            Newbarcode newbarcode = Newbarcode.builder()
+                    .newbarcode(barcode)
+                    .status(status)
+                    .floorname(Integer.parseInt(floor))
+                    .shelf(shelf)
+                    .rownum(Integer.parseInt(rownum))
+                    .colnum(Integer.parseInt(colnum))
+                    .createdtime(currentTime)
+                    .build();
+            barcodeList.add(newbarcode);
+        }
     }
 
     /**
