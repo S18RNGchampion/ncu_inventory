@@ -46,5 +46,7 @@ public class Newbarcode implements Serializable {
 
     private int colnum;
 
+    private int sequence;
+
 
 }

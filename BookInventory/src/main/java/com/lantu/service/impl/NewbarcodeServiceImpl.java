@@ -60,7 +60,7 @@ public class NewbarcodeServiceImpl extends ServiceImpl<NewbarcodeMapper, Newbarc
         Character startChar = null, endChar = null; // 范围的起点和终点字符（如 A 或 B）
         boolean inRange = false; // 是否正在处理一个范围的标志
         List<String> tempBarcodes = new ArrayList<>(); // 临时存储当前范围内的条形码
-
+        int sequence=1;
         // 遍历输入文件的每一行内容
         for (String line : newbarcodes) {
             // 去除每行的前后空白字符
@@ -98,12 +98,14 @@ public class NewbarcodeServiceImpl extends ServiceImpl<NewbarcodeMapper, Newbarc
                     if (startChar < endChar) {
                         // 如果范围是从 A 到 B，按原顺序插入条形码
                         for (String barcode : tempBarcodes) {
-                            insertOrUpdateNewBarcode(barcodeList,barcode,floor,shelf,rownum,colnum,currentTime);
+                            insertOrUpdateNewBarcode(barcodeList,barcode,floor,shelf,rownum,colnum,currentTime,sequence);
+                            sequence++;
                         }
                     } else {
                         // 如果范围是从 B 到 A，按逆序插入条形码
                         for (int i = tempBarcodes.size() - 1; i >= 0; i--) {
-                            insertOrUpdateNewBarcode(barcodeList,tempBarcodes.get(i),floor,shelf,rownum,colnum,currentTime);
+                            insertOrUpdateNewBarcode(barcodeList,tempBarcodes.get(i),floor,shelf,rownum,colnum,currentTime,sequence);
+                            sequence++;
                         }
                     }
                 }
@@ -121,12 +123,12 @@ public class NewbarcodeServiceImpl extends ServiceImpl<NewbarcodeMapper, Newbarc
             if (startChar > endChar) {
                 // 按顺序插入剩余条形码
                 for (String barcode : tempBarcodes) {
-                    insertOrUpdateNewBarcode(barcodeList,barcode,floor,shelf,rownum,colnum,currentTime);
+                    insertOrUpdateNewBarcode(barcodeList,barcode,floor,shelf,rownum,colnum,currentTime,sequence);
                 }
             } else {
                 // 按逆序插入剩余条形码
                 for (int i = tempBarcodes.size() - 1; i >= 0; i--) {
-                    insertOrUpdateNewBarcode(barcodeList,tempBarcodes.get(i),floor,shelf,rownum,colnum,currentTime);
+                    insertOrUpdateNewBarcode(barcodeList,tempBarcodes.get(i),floor,shelf,rownum,colnum,currentTime,sequence);
                 }
             }
         }
@@ -153,7 +155,9 @@ public class NewbarcodeServiceImpl extends ServiceImpl<NewbarcodeMapper, Newbarc
                                           String shelf,
                                           String rownum,
                                           String colnum,
-                                          Date currentTime) {
+                                          Date currentTime,
+                                          int sequence
+    ) {
         // 确定状态
         Integer status;
         if (barcode.contains("error")) {
@@ -167,6 +171,7 @@ public class NewbarcodeServiceImpl extends ServiceImpl<NewbarcodeMapper, Newbarc
                     .rownum(Integer.parseInt(rownum))
                     .colnum(Integer.parseInt(colnum))
                     .createdtime(currentTime)
+                    .sequence(sequence)
                     .build();
             newbarcodeMapper.insert(newbarcode);
             return;
@@ -192,7 +197,8 @@ public class NewbarcodeServiceImpl extends ServiceImpl<NewbarcodeMapper, Newbarc
                     .set(Newbarcode::getShelf, shelf)
                     .set(Newbarcode::getRownum, Integer.parseInt(rownum))
                     .set(Newbarcode::getColnum, Integer.parseInt(colnum))
-                    .set(Newbarcode::getCreatedtime, currentTime);
+                    .set(Newbarcode::getCreatedtime, currentTime)
+                    .set(Newbarcode::getSequence, sequence);
             newbarcodeMapper.update(null, newbarcodeLambdaUpdateWrapper);
         }else {
             Newbarcode newbarcode = Newbarcode.builder()
@@ -203,6 +209,7 @@ public class NewbarcodeServiceImpl extends ServiceImpl<NewbarcodeMapper, Newbarc
                     .rownum(Integer.parseInt(rownum))
                     .colnum(Integer.parseInt(colnum))
                     .createdtime(currentTime)
+                    .sequence(sequence)
                     .build();
             barcodeList.add(newbarcode);
         }
